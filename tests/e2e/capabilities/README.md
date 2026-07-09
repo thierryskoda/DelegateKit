@@ -1,0 +1,7 @@
+`capabilities/` holds one tool-surface E2E per product capability.
+
+Naming: `<capability-slug>-e2e.ts` (for example `google-drive-e2e.ts`, `monday-e2e.ts`). Tool names come from the owning `*ToolContracts` package via `createCapabilityToolCoverage(capabilityId, …ToolContracts)`; call `coverage.assertComplete()` (and `CAPABILITY_E2E_WAIVED_TOOLS` only when a tool cannot run safely yet). `npm run guard -- e2e-harness` statically checks every contract tool is invoked or waived. Also update `scripts/repo-tooling/guards/deterministic/provider-test-coverage.ts` when adding tools (`npm run guard -- source`).
+
+Each file runs deterministic flows for one capability: backend tools via `executeCapabilityTool` composed with `buildCapabilityToolRequest`, runtime-local tools via the plugin harness, and non-tool setup jobs when they belong to the same capability (for example Monday schema generation in `monday-e2e.ts`). Do not drive capability tests with natural-language agent turns, LLM judges, or multi-step client workflows — those belong in `tests/e2e/scenarios/`.
+
+Provider-first capability files are split by provider. Outlook slices require `outlook-mail` and `outlook-calendar` capability bindings in the ignored `scripts/integrations/testing-nango-bindings-e2e.local.json` file (same `ai-assistants-outlook` Nango connection id), then `npm run integrations -- nango bind apply --profile=e2e`. Copy `scripts/integrations/testing-nango-bindings.example.json` when creating a local map.

@@ -1,0 +1,20 @@
+{
+  "name": "@ai-assistants/control-plane-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./agent-evidence": "./src/agent-evidence.ts",
+    "./database.types": "./src/database.types.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

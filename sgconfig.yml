@@ -1,0 +1,4 @@
+ruleDirs:
+  - scripts/repo-tooling/ast-grep/rules
+testConfigs:
+  - testDir: scripts/repo-tooling/ast-grep/rule-tests

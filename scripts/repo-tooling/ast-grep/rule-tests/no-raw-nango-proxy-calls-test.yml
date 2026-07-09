@@ -1,0 +1,15 @@
+id: no-raw-nango-proxy-calls
+valid:
+  - |
+    await nangoProxyRequestJson({ method: "GET" });
+invalid:
+  - |
+    await nango.get(config);
+  - |
+    await nango.post(config);
+  - |
+    await nango.put(config);
+  - |
+    await nango.patch(config);
+  - |
+    await nango.delete(config);

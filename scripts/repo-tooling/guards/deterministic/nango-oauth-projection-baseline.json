@@ -1,0 +1,165 @@
+[
+  {
+    "providerConfigKey": "ai-assistants-google",
+    "requestedScopes": [
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/gmail.modify",
+      "https://www.googleapis.com/auth/gmail.send"
+    ],
+    "requiredGrantedScopes": [
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/gmail.modify",
+      "https://www.googleapis.com/auth/gmail.send"
+    ],
+    "requiresRefreshToken": false,
+    "mappings": [
+      {
+        "slug": "gmail",
+        "provider": "gmail"
+      },
+      {
+        "slug": "google-calendar",
+        "provider": "google-calendar"
+      },
+      {
+        "slug": "google-drive",
+        "provider": "google-drive"
+      }
+    ]
+  },
+  {
+    "providerConfigKey": "ai-assistants-microsoft-onedrive",
+    "requestedScopes": [
+      "Files.ReadWrite.All",
+      "offline_access",
+      "Sites.ReadWrite.All",
+      "User.Read"
+    ],
+    "requiredGrantedScopes": [
+      "Files.ReadWrite.All",
+      "Sites.ReadWrite.All",
+      "User.Read"
+    ],
+    "requiresRefreshToken": true,
+    "mappings": [
+      {
+        "slug": "microsoft-onedrive",
+        "provider": "microsoft-onedrive"
+      }
+    ]
+  },
+  {
+    "providerConfigKey": "ai-assistants-microsoft-sharepoint",
+    "requestedScopes": [
+      "Files.ReadWrite.All",
+      "offline_access",
+      "Sites.ReadWrite.All",
+      "User.Read"
+    ],
+    "requiredGrantedScopes": [
+      "Files.ReadWrite.All",
+      "Sites.ReadWrite.All",
+      "User.Read"
+    ],
+    "requiresRefreshToken": true,
+    "mappings": [
+      {
+        "slug": "microsoft-sharepoint",
+        "provider": "microsoft-sharepoint"
+      }
+    ]
+  },
+  {
+    "providerConfigKey": "ai-assistants-monday",
+    "requestedScopes": [
+      "account:read",
+      "assets:read",
+      "boards:read",
+      "boards:write",
+      "departments:read",
+      "departments:write",
+      "docs:read",
+      "docs:write",
+      "me:read",
+      "notifications:write",
+      "tags:read",
+      "teams:read",
+      "teams:write",
+      "updates:read",
+      "updates:write",
+      "users:read",
+      "users:write",
+      "webhooks:read",
+      "webhooks:write",
+      "workspaces:read",
+      "workspaces:write"
+    ],
+    "requiredGrantedScopes": [
+      "account:read",
+      "assets:read",
+      "boards:read",
+      "boards:write",
+      "departments:read",
+      "departments:write",
+      "docs:read",
+      "docs:write",
+      "me:read",
+      "notifications:write",
+      "tags:read",
+      "teams:read",
+      "teams:write",
+      "updates:read",
+      "updates:write",
+      "users:read",
+      "users:write",
+      "webhooks:read",
+      "webhooks:write",
+      "workspaces:read",
+      "workspaces:write"
+    ],
+    "requiresRefreshToken": false,
+    "mappings": [
+      {
+        "slug": "monday",
+        "provider": "monday"
+      }
+    ]
+  },
+  {
+    "providerConfigKey": "ai-assistants-outlook",
+    "requestedScopes": [
+      "Calendars.ReadWrite",
+      "Mail.Read",
+      "Mail.ReadWrite",
+      "Mail.Send",
+      "offline_access",
+      "Tasks.ReadWrite",
+      "User.Read"
+    ],
+    "requiredGrantedScopes": [
+      "Calendars.ReadWrite",
+      "Mail.Read",
+      "Mail.ReadWrite",
+      "Mail.Send",
+      "Tasks.ReadWrite",
+      "User.Read"
+    ],
+    "requiresRefreshToken": true,
+    "mappings": [
+      {
+        "slug": "microsoft-todo",
+        "provider": "microsoft-todo"
+      },
+      {
+        "slug": "outlook-calendar",
+        "provider": "outlook-calendar"
+      },
+      {
+        "slug": "outlook-mail",
+        "provider": "outlook-mail"
+      }
+    ]
+  }
+]

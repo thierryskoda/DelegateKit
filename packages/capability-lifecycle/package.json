@@ -1,0 +1,22 @@
+{
+  "name": "@ai-assistants/capability-lifecycle",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@ai-assistants/backend-jobs": "*",
+    "@ai-assistants/control-db": "*",
+    "@ai-assistants/errors": "*",
+    "@ai-assistants/capability-catalog": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "typescript": "^5.8.3"
+  }
+}

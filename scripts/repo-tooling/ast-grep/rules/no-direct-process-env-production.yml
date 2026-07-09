@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ast-grep/ast-grep/main/schemas/rule.json
+
+id: no-direct-process-env-production
+message: "Read runtime environment through @ai-assistants/workspace-shared/env or a local typed env accessor."
+severity: error
+language: TypeScript
+rule:
+  any:
+    - pattern: process.env.$KEY
+    - pattern: process.env[$KEY]
+files:
+  - apps/backend/src/**/*.ts
+  - packages/backend-jobs/src/**/*.ts
+  - packages/plugin-tools/src/**/*.ts
+  - packages/runtime-diagnostics/src/**/*.ts
+  - capabilities/*/src/**/*.ts
+ignores:
+  - "**/*.test.ts"
+  - apps/backend/src/bootstrap-env.ts
+  - apps/backend/src/shared/env.ts
+  - packages/runtime-diagnostics/src/logger.ts
+  - packages/runtime-diagnostics/src/runtime-root.ts

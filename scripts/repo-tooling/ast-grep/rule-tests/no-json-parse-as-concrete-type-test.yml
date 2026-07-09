@@ -1,0 +1,13 @@
+id: no-json-parse-as-concrete-type
+valid:
+  - |
+    const parsed = JSON.parse(raw) as unknown;
+  - |
+    const config = configSchema.parse(JSON.parse(raw) as unknown);
+invalid:
+  - |
+    const parsed = JSON.parse(raw) as RuntimeConfig;
+  - |
+    const parsed = JSON.parse(raw) as { name?: string };
+  - |
+    const parsed = JSON.parse(raw) as Record<string, unknown>;

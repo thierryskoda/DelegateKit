@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ast-grep/ast-grep/main/schemas/rule.json
+
+id: no-raw-nango-proxy-calls
+message: "Use nangoProxyRequestJson/nangoProxyRequestBinary instead of raw Nango proxy calls."
+severity: error
+language: TypeScript
+rule:
+  pattern: nango.$METHOD($$$ARGS)
+constraints:
+  METHOD:
+    regex: "^(get|post|put|patch|delete)$"
+files:
+  - apps/backend/src/integrations/nango/**/*.ts
+  - apps/backend/src/capabilities/**/*.ts
+ignores:
+  - apps/backend/src/integrations/nango/nango-proxy-client.ts

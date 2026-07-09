@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1,
+      "description": "Client runtime config schema version."
+    },
+    "profileId": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$",
+      "description": "Backend profile id this runtime config belongs to."
+    },
+    "runtimeProfiles": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["dev", "e2e", "prod"],
+        "description": "Runtime profile where this client should be included for backend runtime validation."
+      },
+      "description": "Runtime profiles that should include this client."
+    },
+    "defaultAssistant": {
+      "default": false,
+      "description": "Whether this client should be the default backend runtime assistant.",
+      "type": "boolean"
+    }
+  },
+  "required": ["schemaVersion", "profileId", "runtimeProfiles"],
+  "additionalProperties": false,
+  "description": "Maintainer-owned source for generated runtime inclusion and behavior.",
+  "$comment": "Generated from scripts/clients/schema.ts by npm run clients -- schema. Do not edit by hand.",
+  "title": "AI Assistants Client Runtime Config"
+}

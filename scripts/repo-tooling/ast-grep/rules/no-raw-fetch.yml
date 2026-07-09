@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ast-grep/ast-grep/main/schemas/rule.json
+
+id: no-raw-fetch
+message: "Use timedFetch.fetch with an explicit timeoutMs instead of raw fetch in backend/runtime/tooling code."
+severity: error
+language: TypeScript
+rule:
+  pattern: fetch($$$ARGS)
+files:
+  - apps/backend/src/**/*.ts
+  - packages/plugin-tools/src/**/*.ts
+  - packages/workspace-shared/src/**/*.ts
+  - scripts/**/*.ts
+ignores:
+  - packages/workspace-shared/src/timed-fetch.ts

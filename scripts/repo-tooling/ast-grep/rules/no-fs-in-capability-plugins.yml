@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ast-grep/ast-grep/main/schemas/rule.json
+
+id: no-fs-in-capability-plugins
+message: "Capability plugins must not use local filesystem state; route durable work through backend tools."
+severity: error
+language: TypeScript
+rule:
+  any:
+    - pattern: import $$$X from "node:fs"
+    - pattern: import $$$X from "node:fs/promises"
+    - pattern: import $$$X from "fs"
+    - pattern: import $$$X from "fs/promises"
+files:
+  - capabilities/**/src/**/*.ts

@@ -1,0 +1,15 @@
+id: no-direct-process-env-production
+valid:
+  - |
+    import { requireBoldSignApiKey } from "../../shared/env";
+
+    const apiKey = requireBoldSignApiKey();
+  - |
+    import { resolveBackendProxyEnv } from "@ai-assistants/workspace-shared/env";
+
+    const env = resolveBackendProxyEnv();
+invalid:
+  - |
+    const apiKey = process.env.BOLDSIGN_API_KEY;
+  - |
+    const token = process.env["AI_ASSISTANTS_BACKEND_MACHINE_TOKEN"];

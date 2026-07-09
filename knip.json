@@ -1,0 +1,96 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "package.json",
+    "apps/connect/vite.config.ts",
+    "apps/connect/src/main.tsx",
+    "scripts/profiles/start.ts",
+    "scripts/profiles/env.ts",
+    "scripts/profiles/connect-public-config.ts",
+    "scripts/profiles/connect-static.ts",
+    "scripts/tunnel/tunnel.ts",
+    "scripts/repo-tooling/guards/guard.ts",
+    "scripts/repo-tooling/guards/run-source-guards.ts",
+    "scripts/repo-tooling/guards/run-knip-guard.ts",
+    "scripts/repo-tooling/guards/supabase-local-control-db.ts",
+    "scripts/repo-tooling/guards/run-runtime-guards.ts",
+    "scripts/repo-tooling/guards/semantic/plugin-boundaries.ts",
+    "scripts/repo-tooling/guards/semantic/tool-contract-descriptions.ts",
+    "scripts/repo-tooling/guards/semantic/prompt-health.ts",
+    "scripts/repo-tooling/guards/semantic/run-all.ts",
+    "scripts/repo-tooling/run-e2e-tests.ts",
+    "scripts/repo-tooling/verify.ts",
+    "scripts/repo-tooling/tool-inventory.ts",
+    "scripts/repo-tooling/db.ts",
+    "scripts/profiles/deploy.ts",
+    "scripts/profiles/profile-cli.ts",
+    "scripts/profiles/build.ts",
+    "scripts/profiles/supabase.ts",
+    "scripts/profiles/tailscale.ts",
+    "apps/backend/src/server.ts",
+    "apps/backend/src/worker.ts",
+    "scripts/clients/clients.ts",
+    "scripts/clients/seed-profile.ts",
+    "scripts/clients/seed-missing-cli.ts",
+    "scripts/clients/validate-clients.ts",
+    "scripts/clients/generate-json-schema.ts",
+    "scripts/integrations/integrations.ts",
+    "scripts/integrations/nango-provisioning-validate.ts",
+    "scripts/integrations/nango-provisioning-diff-cli.ts",
+    "scripts/integrations/nango-provisioning-apply.ts",
+    "scripts/integrations/bind-profile-nango.ts",
+    "scripts/profiles/connect.ts",
+    "scripts/diagnostics/diagnostics.ts",
+    "scripts/smoke/codex-agent.ts",
+    "scripts/diagnostics/query.ts",
+    "scripts/diagnostics/prune.ts",
+    "scripts/repo-tooling/e2e-sweep/e2e-sweep.ts",
+    "scripts/repo-tooling/e2e-fixtures/cleanup-stale-fixtures.ts",
+    "capabilities/*/GUIDANCE.ts",
+    "runtime-guidance/*/GUIDANCE.ts",
+    "tests/e2e/**/*.ts",
+    "clients/*/seed.ts",
+    "clients/*/runtime.ts"
+  ],
+  "project": [
+    "apps/**/*.{ts,tsx}",
+    "packages/**/*.ts",
+    "capabilities/**/*.ts",
+    "runtime-guidance/**/*.ts",
+    "clients/**/*.ts",
+    "scripts/**/*.ts",
+    "tests/**/*.ts"
+  ],
+  "ignore": [
+    "packages/control-plane-contracts/src/database.types.ts",
+    "packages/guidance-authoring/src/type-tests.ts"
+  ],
+  "vite": false,
+  "ignoreDependencies": ["@ast-grep/cli", "ts-to-zod"],
+  "ignoreIssues": {
+    "packages/control-plane-contracts/src/database-row-schemas.generated.ts": [
+      "exports"
+    ],
+    "packages/control-plane-contracts/src/database-row-types.generated.ts": [
+      "types"
+    ],
+    "scripts/integrations/nango-provisioning-runtime.ts": [
+      "exports"
+    ],
+    "packages/actions-contracts/src/schemas.ts": [
+      "duplicates"
+    ],
+    "packages/guidance-authoring/src/index.ts": [
+      "duplicates"
+    ],
+    "packages/proposals-contracts/src/schemas.ts": [
+      "duplicates"
+    ],
+    "packages/scheduled-tasks-contracts/src/schemas.ts": [
+      "duplicates"
+    ],
+    "packages/tool-contracts/src/provider-output-schemas.ts": [
+      "duplicates"
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+id: no-raw-fetch
+snapshots:
+  ? |
+    await fetch(url);
+  : labels:
+    - source: fetch(url)
+      style: primary
+      start: 6
+      end: 16
+  ? |
+    await fetch(url, { signal: AbortSignal.timeout(1_000) });
+  : labels:
+    - source: 'fetch(url, { signal: AbortSignal.timeout(1_000) })'
+      style: primary
+      start: 6
+      end: 56

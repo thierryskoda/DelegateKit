@@ -1,0 +1,40 @@
+{
+  "name": "@ai-assistants/assistant-capability-surface",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@ai-assistants/boldsign-contracts": "*",
+    "@ai-assistants/google-calendar-contracts": "*",
+    "@ai-assistants/capability-catalog": "*",
+    "@ai-assistants/document-contracts": "*",
+    "@ai-assistants/gmail-contracts": "*",
+    "@ai-assistants/google-drive-contracts": "*",
+    "@ai-assistants/microsoft-onedrive-contracts": "*",
+    "@ai-assistants/microsoft-sharepoint-contracts": "*",
+    "@ai-assistants/microsoft-todo-contracts": "*",
+    "@ai-assistants/monday-contracts": "*",
+    "@ai-assistants/outlook-calendar-contracts": "*",
+    "@ai-assistants/outlook-mail-contracts": "*",
+    "@ai-assistants/tool-contracts": "*",
+    "@ai-assistants/public-web-contracts": "*",
+    "@ai-assistants/actions-contracts": "*",
+    "@ai-assistants/profile-files-contracts": "*",
+    "@ai-assistants/profile-links-contracts": "*",
+    "@ai-assistants/proposals-contracts": "*",
+    "@ai-assistants/scheduled-tasks-contracts": "*",
+    "@ai-assistants/time-contracts": "*",
+    "@ai-assistants/work-contracts": "*",
+    "@ai-assistants/profile-context-contracts": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

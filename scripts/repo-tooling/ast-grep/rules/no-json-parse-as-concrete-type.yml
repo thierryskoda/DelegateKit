@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ast-grep/ast-grep/main/schemas/rule.json
+
+id: no-json-parse-as-concrete-type
+message: "Parse JSON as unknown, then validate with a schema instead of asserting a concrete type."
+severity: error
+language: TypeScript
+rule:
+  any:
+    - pattern: JSON.parse($RAW) as $TYPE
+    - pattern: JSON.parse($RAW) as unknown as $TYPE
+constraints:
+  TYPE:
+    not:
+      regex: "^unknown$"
+files:
+  - apps/**/*.ts
+  - packages/**/*.ts
+  - scripts/**/*.ts

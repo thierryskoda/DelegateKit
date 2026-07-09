@@ -1,0 +1,35 @@
+{
+  "name": "@ai-assistants/connect",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build --config vite.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "vite --host 0.0.0.0 --config vite.config.ts"
+  },
+  "dependencies": {
+    "@ai-assistants/connect-api-contracts": "*",
+    "@ai-assistants/errors": "*",
+    "@nangohq/frontend": "^0.70.1",
+    "@supabase/supabase-js": "^2.84.0",
+    "@tanstack/react-query": "^5.100.9",
+    "@tanstack/react-router": "^1.169.1",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.4",
+    "@tanstack/router-plugin": "^1.167.32",
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^6.0.3",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^5.8.3",
+    "vite": "^8.1.4"
+  }
+}

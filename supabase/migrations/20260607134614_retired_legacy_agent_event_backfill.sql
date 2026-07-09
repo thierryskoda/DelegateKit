@@ -1,0 +1,8 @@
+-- This migration timestamp was used during the raw agent event ledger refactor
+-- and may already exist in local migration history. The legacy import it once
+-- represented has been intentionally retired: old derived tables are not a
+-- source of truth, and fresh databases should not backfill compatibility rows.
+--
+-- Keep this file so Supabase migration history remains forward-only and
+-- `supabase migration up --local` can validate environments that recorded the
+-- version before the legacy import was removed.

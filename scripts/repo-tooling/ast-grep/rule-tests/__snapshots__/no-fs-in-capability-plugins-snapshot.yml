@@ -1,0 +1,30 @@
+id: no-fs-in-capability-plugins
+snapshots:
+  ? |
+    import fs from "fs";
+  : labels:
+    - source: import fs from "fs";
+      style: primary
+      start: 0
+      end: 20
+  ? |
+    import fs from "fs/promises";
+  : labels:
+    - source: import fs from "fs/promises";
+      style: primary
+      start: 0
+      end: 29
+  ? |
+    import { readFile } from "node:fs/promises";
+  : labels:
+    - source: import { readFile } from "node:fs/promises";
+      style: primary
+      start: 0
+      end: 44
+  ? |
+    import { readFileSync } from "node:fs";
+  : labels:
+    - source: import { readFileSync } from "node:fs";
+      style: primary
+      start: 0
+      end: 39

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Microsoft To Do">
+  <defs>
+    <linearGradient id="a" x1="9" x2="55" y1="12" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5fd4ff"/>
+      <stop offset=".45" stop-color="#168dff"/>
+      <stop offset="1" stop-color="#005bd3"/>
+    </linearGradient>
+    <linearGradient id="b" x1="19" x2="46" y1="19" y2="45" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#dff3ff" stop-opacity=".88"/>
+    </linearGradient>
+  </defs>
+  <rect width="56" height="56" x="4" y="4" rx="14" fill="url(#a)"/>
+  <path fill="#0047b8" fill-opacity=".18" d="M60 28v18c0 7.73-6.27 14-14 14H28l-9.82-9.82 7.82-7.79 6.05 6.06L60 28Z"/>
+  <path fill="url(#b)" d="M29.09 44.94a4 4 0 0 1-5.66 0l-8.49-8.48a4 4 0 1 1 5.66-5.66l5.66 5.66 17.14-17.14a4 4 0 0 1 5.66 5.66L29.09 44.94Z"/>
+</svg>

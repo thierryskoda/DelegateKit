@@ -1,0 +1,94 @@
+# Secrets — keep out of git
+.env
+.env.*
+!.env.example
+.envrc
+.dev.vars
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+
+# Live provider binding maps contain private remote connection identifiers.
+scripts/integrations/*-nango-bindings-*.local.json
+
+# Dependencies — never commit (too large / reproducible via npm install)
+node_modules/
+**/node_modules/
+
+# Runtime npm cache (regenerated locally; huge tree)
+plugin-runtime-deps/
+
+# Generated profile config and runtime state never belong in the source repo.
+/agents/
+/canvas/
+/completions/
+/credentials/
+/cron/
+/delivery-queue/
+/devices/
+/flows/
+/identity/
+/logs/
+/media/
+/memory/
+/sandbox/
+/subagents/
+/tasks/
+/telegram/
+/tmp/
+/workspaces/
+/plugins/installs.json
+
+# Only the public template and sanitized testing profile may live under clients/.
+/clients/*/
+!/clients/_template/
+!/clients/_template/**
+!/clients/testing/
+!/clients/testing/**
+
+# Nango CLI artifacts (regenerate: cd apps/backend/nango-functions && npx nango compile …)
+apps/backend/nango-functions/build/
+apps/backend/nango-functions/.nango/*
+!apps/backend/nango-functions/.nango/.gitkeep
+
+# Build output / generated — reproducible, noisy to diff & index
+dist/
+**/dist/
+*.tsbuildinfo
+**/*.tsbuildinfo
+generated/
+clients/client-state-snapshots.generated.json
+clients/client-state-snapshots.generated/
+clients/client-state-summaries.generated/
+
+# SQLite WAL sidecars — never commit; recreated by the engine
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Temp / caches / test artifacts
+.cache/
+.turbo/
+**/.turbo/
+coverage/
+**/__pycache__/
+/tests/tmp/
+
+# OS / editor cruft
+.DS_Store
+*.swp
+*~
+
+*.lock
+
+# Temporary agent planning artifacts
+.agent/
+.agents/
+.cto/
+.agent/plans/*.md
+.agent/reports/
+.agent/task-loop/

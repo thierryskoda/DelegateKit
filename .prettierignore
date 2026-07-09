@@ -1,0 +1,20 @@
+# Dependencies & installs
+node_modules/
+plugin-runtime-deps/
+
+# Build & caches
+dist/
+**/dist/
+.cache/
+coverage/
+**/*.tsbuildinfo
+
+# Generated / reproducible trees
+generated/
+apps/connect/src/routeTree.gen.ts
+
+# Lockfiles (avoid churn; formatting adds little)
+package-lock.json
+
+# Logs & temp from tooling
+/tests/tmp/

@@ -1,0 +1,23 @@
+id: no-json-parse-as-concrete-type
+snapshots:
+  ? |
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+  : labels:
+    - source: JSON.parse(raw) as Record<string, unknown>
+      style: primary
+      start: 15
+      end: 57
+  ? |
+    const parsed = JSON.parse(raw) as RuntimeConfig;
+  : labels:
+    - source: JSON.parse(raw) as RuntimeConfig
+      style: primary
+      start: 15
+      end: 47
+  ? |
+    const parsed = JSON.parse(raw) as { name?: string };
+  : labels:
+    - source: 'JSON.parse(raw) as { name?: string }'
+      style: primary
+      start: 15
+      end: 51

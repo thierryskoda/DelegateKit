@@ -1,0 +1,13 @@
+id: no-fs-in-capability-plugins
+valid:
+  - |
+    import { gmailToolContracts } from "@ai-assistants/gmail-contracts/contracts";
+invalid:
+  - |
+    import { readFileSync } from "node:fs";
+  - |
+    import { readFile } from "node:fs/promises";
+  - |
+    import fs from "fs";
+  - |
+    import fs from "fs/promises";

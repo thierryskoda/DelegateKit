@@ -1,0 +1,37 @@
+id: no-raw-nango-proxy-calls
+snapshots:
+  ? |
+    await nango.delete(config);
+  : labels:
+    - source: nango.delete(config)
+      style: primary
+      start: 6
+      end: 26
+  ? |
+    await nango.get(config);
+  : labels:
+    - source: nango.get(config)
+      style: primary
+      start: 6
+      end: 23
+  ? |
+    await nango.patch(config);
+  : labels:
+    - source: nango.patch(config)
+      style: primary
+      start: 6
+      end: 25
+  ? |
+    await nango.post(config);
+  : labels:
+    - source: nango.post(config)
+      style: primary
+      start: 6
+      end: 24
+  ? |
+    await nango.put(config);
+  : labels:
+    - source: nango.put(config)
+      style: primary
+      start: 6
+      end: 23

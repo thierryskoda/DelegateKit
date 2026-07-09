@@ -1,0 +1,3 @@
+-- Initial client profile seed data lives in clients/*/seed.ts.
+-- `npm run profile -- supabase reset --profile=dev|prod` applies those
+-- typed seeds through scripts/clients/seed-missing-profiles.ts after reset.

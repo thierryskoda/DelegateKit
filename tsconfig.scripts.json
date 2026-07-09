@@ -1,0 +1,143 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    "paths": {
+      "@ai-assistants/backend-jobs": ["./packages/backend-jobs/src/index.ts"],
+      "@ai-assistants/boldsign-contracts": ["./packages/boldsign-contracts/src/index.ts"],
+      "@ai-assistants/boldsign-contracts/contracts": [
+        "./packages/boldsign-contracts/src/contracts.ts"
+      ],
+      "@ai-assistants/boldsign-contracts/schemas": ["./packages/boldsign-contracts/src/schemas.ts"],
+      "@ai-assistants/capability-catalog": ["./packages/capability-catalog/src/index.ts"],
+      "@ai-assistants/document-contracts": ["./packages/document-contracts/src/index.ts"],
+      "@ai-assistants/document-contracts/constants": [
+        "./packages/document-contracts/src/constants.ts"
+      ],
+      "@ai-assistants/document-contracts/contracts": [
+        "./packages/document-contracts/src/contracts.ts"
+      ],
+      "@ai-assistants/document-contracts/schemas": ["./packages/document-contracts/src/schemas.ts"],
+      "@ai-assistants/gmail-contracts": ["./packages/gmail-contracts/src/index.ts"],
+      "@ai-assistants/gmail-contracts/contracts": ["./packages/gmail-contracts/src/contracts.ts"],
+      "@ai-assistants/gmail-contracts/schemas": ["./packages/gmail-contracts/src/schemas.ts"],
+      "@ai-assistants/google-calendar-contracts": [
+        "./packages/google-calendar-contracts/src/index.ts"
+      ],
+      "@ai-assistants/google-calendar-contracts/contracts": [
+        "./packages/google-calendar-contracts/src/contracts.ts"
+      ],
+      "@ai-assistants/google-calendar-contracts/schemas": [
+        "./packages/google-calendar-contracts/src/schemas.ts"
+      ],
+      "@ai-assistants/google-drive-contracts": ["./packages/google-drive-contracts/src/index.ts"],
+      "@ai-assistants/google-drive-contracts/contracts": [
+        "./packages/google-drive-contracts/src/contracts.ts"
+      ],
+      "@ai-assistants/google-drive-contracts/schemas": [
+        "./packages/google-drive-contracts/src/schemas.ts"
+      ],
+      "@ai-assistants/guidance-authoring": ["./packages/guidance-authoring/src/index.ts"],
+      "@ai-assistants/llm-judge": ["./packages/llm-judge/src/index.ts"],
+      "@ai-assistants/microsoft-onedrive-contracts": [
+        "./packages/microsoft-onedrive-contracts/src/index.ts"
+      ],
+      "@ai-assistants/microsoft-onedrive-contracts/contracts": [
+        "./packages/microsoft-onedrive-contracts/src/contracts.ts"
+      ],
+      "@ai-assistants/microsoft-onedrive-contracts/schemas": [
+        "./packages/microsoft-onedrive-contracts/src/schemas.ts"
+      ],
+      "@ai-assistants/microsoft-sharepoint-contracts": [
+        "./packages/microsoft-sharepoint-contracts/src/index.ts"
+      ],
+      "@ai-assistants/microsoft-sharepoint-contracts/contracts": [
+        "./packages/microsoft-sharepoint-contracts/src/contracts.ts"
+      ],
+      "@ai-assistants/microsoft-sharepoint-contracts/schemas": [
+        "./packages/microsoft-sharepoint-contracts/src/schemas.ts"
+      ],
+      "@ai-assistants/microsoft-todo-contracts": [
+        "./packages/microsoft-todo-contracts/src/index.ts"
+      ],
+      "@ai-assistants/microsoft-todo-contracts/contracts": [
+        "./packages/microsoft-todo-contracts/src/contracts.ts"
+      ],
+      "@ai-assistants/microsoft-todo-contracts/schemas": [
+        "./packages/microsoft-todo-contracts/src/schemas.ts"
+      ],
+      "@ai-assistants/monday-contracts": ["./packages/monday-contracts/src/index.ts"],
+      "@ai-assistants/monday-contracts/contracts": ["./packages/monday-contracts/src/contracts.ts"],
+      "@ai-assistants/monday-contracts/schemas": ["./packages/monday-contracts/src/schemas.ts"],
+      "@ai-assistants/monday-contracts/schema-fingerprint": [
+        "./packages/monday-contracts/src/schema-fingerprint.ts"
+      ],
+      "@ai-assistants/nango-provisioning": ["./packages/nango-provisioning/src/index.ts"],
+      "@ai-assistants/assistant-capability-surface": [
+        "./packages/assistant-capability-surface/src/index.ts"
+      ],
+      "@ai-assistants/outlook-calendar-contracts": [
+        "./packages/outlook-calendar-contracts/src/index.ts"
+      ],
+      "@ai-assistants/outlook-calendar-contracts/contracts": [
+        "./packages/outlook-calendar-contracts/src/contracts.ts"
+      ],
+      "@ai-assistants/outlook-calendar-contracts/schemas": [
+        "./packages/outlook-calendar-contracts/src/schemas.ts"
+      ],
+      "@ai-assistants/outlook-mail-contracts": ["./packages/outlook-mail-contracts/src/index.ts"],
+      "@ai-assistants/outlook-mail-contracts/contracts": [
+        "./packages/outlook-mail-contracts/src/contracts.ts"
+      ],
+      "@ai-assistants/outlook-mail-contracts/schemas": [
+        "./packages/outlook-mail-contracts/src/schemas.ts"
+      ],
+      "@ai-assistants/runtime-diagnostics": ["./packages/runtime-diagnostics/src/index.ts"],
+      "@ai-assistants/workspace-shared": ["./packages/workspace-shared/src/index.ts"],
+      "@ai-assistants/workspace-shared/*": ["./packages/workspace-shared/src/*"],
+      "@ai-assistants/actions-contracts": ["./packages/actions-contracts/src/index.ts"],
+      "@ai-assistants/actions-contracts/contracts": [
+        "./packages/actions-contracts/src/contracts.ts"
+      ],
+      "@ai-assistants/actions-contracts/schemas": ["./packages/actions-contracts/src/schemas.ts"],
+      "@ai-assistants/profile-links-contracts": ["./packages/profile-links-contracts/src/index.ts"],
+      "@ai-assistants/profile-links-contracts/contracts": [
+        "./packages/profile-links-contracts/src/contracts.ts"
+      ],
+      "@ai-assistants/profile-links-contracts/schemas": [
+        "./packages/profile-links-contracts/src/schemas.ts"
+      ],
+      "@ai-assistants/proposals-contracts": ["./packages/proposals-contracts/src/index.ts"],
+      "@ai-assistants/proposals-contracts/contracts": [
+        "./packages/proposals-contracts/src/contracts.ts"
+      ],
+      "@ai-assistants/proposals-contracts/schemas": [
+        "./packages/proposals-contracts/src/schemas.ts"
+      ],
+      "@ai-assistants/scheduled-tasks-contracts": [
+        "./packages/scheduled-tasks-contracts/src/index.ts"
+      ],
+      "@ai-assistants/scheduled-tasks-contracts/contracts": [
+        "./packages/scheduled-tasks-contracts/src/contracts.ts"
+      ],
+      "@ai-assistants/scheduled-tasks-contracts/schemas": [
+        "./packages/scheduled-tasks-contracts/src/schemas.ts"
+      ],
+      "@ai-assistants/time-contracts": ["./packages/time-contracts/src/index.ts"],
+      "@ai-assistants/time-contracts/contracts": ["./packages/time-contracts/src/contracts.ts"],
+      "@ai-assistants/time-contracts/schemas": ["./packages/time-contracts/src/schemas.ts"],
+      "@ai-assistants/work-contracts": ["./packages/work-contracts/src/index.ts"],
+      "@ai-assistants/work-contracts/contracts": ["./packages/work-contracts/src/contracts.ts"],
+      "@ai-assistants/work-contracts/schemas": ["./packages/work-contracts/src/schemas.ts"],
+      "@ai-assistants/runtime-guidance": ["./packages/runtime-guidance/src/index.ts"],
+      "@ai-assistants/profile-context-contracts/contracts": [
+        "./packages/profile-context-contracts/src/contracts.ts"
+      ],
+      "@ai-assistants/profile-context-contracts/schemas": [
+        "./packages/profile-context-contracts/src/schemas.ts"
+      ]
+    }
+  },
+  "include": ["scripts/**/*.ts", "tests/**/*.ts", "clients/**/*.ts", "capabilities/*/e2e/**/*.ts"]
+}

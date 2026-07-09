@@ -1,0 +1,158 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/backend"
+    },
+    {
+      "path": "./apps/connect"
+    },
+    {
+      "path": "./capabilities/boldsign"
+    },
+    {
+      "path": "./capabilities/document-tools"
+    },
+    {
+      "path": "./capabilities/file-analysis"
+    },
+    {
+      "path": "./capabilities/gmail"
+    },
+    {
+      "path": "./capabilities/google-calendar"
+    },
+    {
+      "path": "./capabilities/google-drive"
+    },
+    {
+      "path": "./capabilities/microsoft-onedrive"
+    },
+    {
+      "path": "./capabilities/microsoft-sharepoint"
+    },
+    {
+      "path": "./capabilities/microsoft-todo"
+    },
+    {
+      "path": "./capabilities/monday"
+    },
+    {
+      "path": "./capabilities/outlook-calendar"
+    },
+    {
+      "path": "./capabilities/outlook-mail"
+    },
+    {
+      "path": "./packages/boldsign-contracts"
+    },
+    {
+      "path": "./packages/capability-catalog"
+    },
+    {
+      "path": "./packages/connect-api-contracts"
+    },
+    {
+      "path": "./packages/control-db"
+    },
+    {
+      "path": "./packages/control-plane-contracts"
+    },
+    {
+      "path": "./packages/document-contracts"
+    },
+    {
+      "path": "./packages/file-analysis-contracts"
+    },
+    {
+      "path": "./packages/gmail-contracts"
+    },
+    {
+      "path": "./packages/google-calendar-contracts"
+    },
+    {
+      "path": "./packages/google-drive-contracts"
+    },
+    {
+      "path": "./packages/microsoft-onedrive-contracts"
+    },
+    {
+      "path": "./packages/microsoft-sharepoint-contracts"
+    },
+    {
+      "path": "./packages/microsoft-todo-contracts"
+    },
+    {
+      "path": "./packages/monday-contracts"
+    },
+    {
+      "path": "./packages/nango-provisioning"
+    },
+    {
+      "path": "./packages/outlook-calendar-contracts"
+    },
+    {
+      "path": "./packages/outlook-mail-contracts"
+    },
+    {
+      "path": "./packages/assistant-capability-surface"
+    },
+    {
+      "path": "./packages/profile-context-contracts"
+    },
+    {
+      "path": "./packages/runtime-diagnostics"
+    },
+    {
+      "path": "./packages/tool-contracts"
+    },
+    {
+      "path": "./runtime-plugins/artifacts"
+    },
+    {
+      "path": "./runtime-plugins/subagents"
+    },
+    {
+      "path": "./capabilities/profile-context"
+    },
+    {
+      "path": "./capabilities/time"
+    },
+    {
+      "path": "./capabilities/work"
+    },
+    {
+      "path": "./capabilities/scheduled-tasks"
+    },
+    {
+      "path": "./capabilities/actions"
+    },
+    {
+      "path": "./capabilities/proposals"
+    },
+    {
+      "path": "./capabilities/profile-links"
+    },
+    {
+      "path": "./packages/time-contracts"
+    },
+    {
+      "path": "./packages/work-contracts"
+    },
+    {
+      "path": "./packages/scheduled-tasks-contracts"
+    },
+    {
+      "path": "./packages/actions-contracts"
+    },
+    {
+      "path": "./packages/proposals-contracts"
+    },
+    {
+      "path": "./packages/profile-links-contracts"
+    },
+    {
+      "path": "./packages/runtime-guidance"
+    }
+  ]
+}

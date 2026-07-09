@@ -1,0 +1,26 @@
+{
+  "name": "@ai-assistants/workspace-shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./cli-parse": "./src/cli-parse.ts",
+    "./dotenv": "./src/dotenv.ts",
+    "./env": "./src/env.ts",
+    "./env-validation": "./src/env-validation.ts",
+    "./timed-fetch": "./src/timed-fetch.ts",
+    "./cli-schema": "./src/cli-schema.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@ai-assistants/repo-layout": "*",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,0 +1,11 @@
+id: no-raw-fetch
+valid:
+  - |
+    import { timedFetch } from "@ai-assistants/workspace-shared/timed-fetch";
+
+    await timedFetch.fetch(url, { timeoutMs: 1_000 });
+invalid:
+  - |
+    await fetch(url);
+  - |
+    await fetch(url, { signal: AbortSignal.timeout(1_000) });

@@ -1,0 +1,22 @@
+{
+  "name": "@ai-assistants/backend-jobs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@ai-assistants/control-db": "*",
+    "@ai-assistants/control-plane-contracts": "*",
+    "@ai-assistants/runtime-diagnostics": "*",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "typescript": "^5.8.3"
+  }
+}

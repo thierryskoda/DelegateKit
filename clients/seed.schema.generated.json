@@ -1,0 +1,573 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "schemaVersion": { "type": "number", "const": 1, "description": "Client seed schema version." },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$",
+          "description": "Stable lowercase profile id used in backend rows, runtime config, and workspace paths."
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable profile name shown in Connect and generated setup context."
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1,
+          "description": "IANA timezone for this profile, such as America/Toronto."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "inactive"],
+          "description": "Initial profile status created when this seed runs for a missing profile."
+        },
+        "metadata": {
+          "default": {},
+          "description": "Durable profile metadata safe to store in the control database.",
+          "type": "object",
+          "propertyNames": { "type": "string" },
+          "additionalProperties": { "$ref": "#/definitions/__schema0" }
+        }
+      },
+      "required": ["id", "displayName", "timezone", "status"],
+      "additionalProperties": false,
+      "description": "Initial backend profile identity and metadata."
+    },
+    "portalUser": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "description": "Stable Supabase auth user id for deterministic local seeds."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+          "description": "Connect login email for this profile user."
+        },
+        "password": {
+          "type": "string",
+          "minLength": 8,
+          "description": "Connect portal password for this profile user."
+        },
+        "metadata": {
+          "default": {},
+          "description": "Additional auth user metadata.",
+          "type": "object",
+          "propertyNames": { "type": "string" },
+          "additionalProperties": { "$ref": "#/definitions/__schema0" }
+        }
+      },
+      "required": ["email", "password"],
+      "additionalProperties": false,
+      "description": "Initial portal auth user that owns this profile."
+    },
+    "initialAssistantName": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Initial assistant display name stored in profile preferences."
+    },
+    "initialCapabilities": {
+      "type": "array",
+      "items": {
+        "description": "Capability slug shorthand or expanded capability object.",
+        "anyOf": [
+          {
+            "type": "string",
+            "enum": [
+              "boldsign",
+              "microsoft-onedrive",
+              "microsoft-sharepoint",
+              "microsoft-todo",
+              "google-drive",
+              "google-calendar",
+              "outlook-calendar",
+              "gmail",
+              "outlook-mail",
+              "monday",
+              "document-tools",
+              "file-analysis",
+              "public-web",
+              "phone"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string",
+                "enum": [
+                  "boldsign",
+                  "microsoft-onedrive",
+                  "microsoft-sharepoint",
+                  "microsoft-todo",
+                  "google-drive",
+                  "google-calendar",
+                  "outlook-calendar",
+                  "gmail",
+                  "outlook-mail",
+                  "monday",
+                  "document-tools",
+                  "file-analysis",
+                  "public-web",
+                  "phone"
+                ],
+                "description": "Profile capability slug from the capability catalog."
+              },
+              "provider": {
+                "type": "string",
+                "enum": [
+                  "boldsign",
+                  "browserbase-stagehand",
+                  "document-tools",
+                  "file-analysis",
+                  "gmail",
+                  "google-calendar",
+                  "google-drive",
+                  "microsoft-onedrive",
+                  "microsoft-sharepoint",
+                  "microsoft-todo",
+                  "monday",
+                  "outlook-calendar",
+                  "outlook-mail",
+                  "perplexity",
+                  "twilio-messaging",
+                  "twilio-voice"
+                ],
+                "description": "Capability account provider id, usually the catalog default for this capability (for example gmail, outlook-mail, outlook-calendar, microsoft-onedrive, or microsoft-sharepoint). When omitted, client seeding uses the catalog default provider."
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Connect-facing capability label. Defaults to the catalog label."
+              },
+              "required": {
+                "default": true,
+                "description": "Whether this capability is expected for the launched assistant.",
+                "type": "boolean"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["enabled", "disabled"],
+                "description": "Initial backend capability status."
+              },
+              "config": {
+                "default": {},
+                "description": "Provider-specific non-secret configuration stored with the capability instance.",
+                "type": "object",
+                "propertyNames": { "type": "string" },
+                "additionalProperties": { "$ref": "#/definitions/__schema0" }
+              }
+            },
+            "required": ["slug"],
+            "additionalProperties": false,
+            "description": "Expanded capability seed when slug-only shorthand is not enough."
+          }
+        ]
+      },
+      "description": "Capabilities to create for this profile during its initial seed."
+    },
+    "initialChannels": {
+      "description": "Initial direct channel identities for this profile.",
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "enum": ["telegram", "imessage"],
+                "description": "Mobile channel provider for direct client routing."
+              },
+              "externalIdentity": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Sender identity for this profile, such as a Telegram user id or iMessage handle."
+              },
+              "accountId": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Channel account id when more than one bot/account exists."
+              },
+              "status": {
+                "type": "string",
+                "enum": ["active", "inactive"],
+                "description": "Whether this channel identity should be routable."
+              },
+              "deliveryConfig": {
+                "type": "object",
+                "propertyNames": { "type": "string" },
+                "additionalProperties": { "$ref": "#/definitions/__schema0" },
+                "description": "Channel-specific delivery settings. Secrets do not belong here."
+              }
+            },
+            "required": ["provider", "externalIdentity", "accountId", "status", "deliveryConfig"],
+            "additionalProperties": false,
+            "description": "Direct channel identity that must resolve to exactly one profile."
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "initialWritePolicy": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "defaultMode": {
+              "default": "auto_execute",
+              "description": "Fallback write policy mode for policy-controlled external write actions without an explicit override.",
+              "type": "string",
+              "enum": ["auto_execute", "needs_review", "blocked"]
+            },
+            "actions": {
+              "default": {},
+              "description": "Overrides for write policy modes keyed by canonical external action id.",
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "enum": [
+                  "monday.item.create",
+                  "monday.item.update",
+                  "monday.item.archive",
+                  "monday.item.move_to_group",
+                  "monday.update.create",
+                  "monday.update.edit",
+                  "monday.update.delete",
+                  "monday.subitem.create",
+                  "monday.subitem.update",
+                  "monday.subitem.archive",
+                  "monday.file.add_to_column",
+                  "monday.file.add_to_update",
+                  "monday.board.create",
+                  "monday.board.rename",
+                  "monday.board.delete",
+                  "monday.column.create",
+                  "monday.column.rename",
+                  "monday.column.delete",
+                  "monday.group.create",
+                  "monday.group.rename",
+                  "monday.group.delete",
+                  "google_drive.folder.create",
+                  "google_drive.file.rename",
+                  "google_drive.file.update_description",
+                  "google_drive.file.move",
+                  "google_drive.file.copy",
+                  "google_drive.file.upload",
+                  "google_drive.file.trash",
+                  "google_drive.file.restore",
+                  "google_drive.file.delete",
+                  "google_drive.file.share",
+                  "google_drive.permission.update",
+                  "google_drive.permission.delete",
+                  "microsoft_onedrive.folder.create",
+                  "microsoft_onedrive.item.update",
+                  "microsoft_onedrive.item.move",
+                  "microsoft_onedrive.item.copy",
+                  "microsoft_onedrive.item.delete",
+                  "microsoft_onedrive.file.upload",
+                  "microsoft_onedrive.sharing_link.create",
+                  "microsoft_onedrive.invitation.send",
+                  "microsoft_onedrive.permission.delete",
+                  "microsoft_todo.task.create",
+                  "microsoft_todo.task.update",
+                  "microsoft_todo.task.complete",
+                  "microsoft_todo.task.delete",
+                  "google_calendar.event.create",
+                  "google_calendar.event.modify",
+                  "google_calendar.event.cancel",
+                  "outlook_calendar.event.create",
+                  "outlook_calendar.event.modify",
+                  "outlook_calendar.event.cancel",
+                  "gmail.message.send",
+                  "gmail.message.reply",
+                  "gmail.message.forward",
+                  "gmail.message.move",
+                  "gmail.message.mark_read",
+                  "gmail.message.delete",
+                  "outlook_mail.message.send",
+                  "outlook_mail.message.reply",
+                  "outlook_mail.message.forward",
+                  "outlook_mail.message.move",
+                  "outlook_mail.message.mark_read",
+                  "outlook_mail.message.delete",
+                  "boldsign.signature_request.send",
+                  "boldsign.signature_request.remind",
+                  "boldsign.signature_request.cancel",
+                  "phone.call.start",
+                  "phone.sms.send"
+                ]
+              },
+              "additionalProperties": {
+                "type": "string",
+                "enum": ["auto_execute", "needs_review", "blocked"]
+              }
+            }
+          },
+          "additionalProperties": false,
+          "description": "Per-profile write policy overrides layered on top of capability defaults."
+        },
+        { "type": "null" }
+      ]
+    },
+    "initialAssistantWorkRoutes": {
+      "description": "Initial profile-level event types that should create assistant work items.",
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "google_calendar.event.changed",
+                  "outlook_calendar.event.changed",
+                  "gmail.email.received",
+                  "outlook_mail.email.received",
+                  "twilio.sms.received",
+                  "monday.item.created",
+                  "monday.item.updated",
+                  "boldsign.signature_request.changed",
+                  "google_drive.file.created",
+                  "google_drive.file.updated",
+                  "google_drive.file.deleted",
+                  "microsoft_onedrive.file.created",
+                  "microsoft_onedrive.file.updated",
+                  "microsoft_onedrive.file.deleted",
+                  "microsoft_sharepoint.file.created",
+                  "microsoft_sharepoint.file.updated",
+                  "microsoft_sharepoint.file.deleted"
+                ],
+                "description": "Provider event type that should become assistant work for this profile."
+              },
+              "connectedProviderAccountId": {
+                "description": "Optional connected provider account id for an account-scoped route. Omit for the profile-level default route.",
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "config": {
+                "default": {},
+                "description": "Typed event-specific route config.",
+                "type": "object",
+                "properties": {
+                  "instructions": { "type": "string", "minLength": 1, "maxLength": 10000 },
+                  "priority": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 }
+                },
+                "additionalProperties": false
+              }
+            },
+            "required": ["eventType"],
+            "additionalProperties": false,
+            "description": "Profile-level opt-in route from provider event to assistant work item."
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "initialScheduledTasks": {
+      "description": "Source-declared scheduled assistant tasks to create for this profile during initial seed.",
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 80,
+                "pattern": "^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$",
+                "description": "Stable source key for this seed-created scheduled task."
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "Short scheduled task title."
+              },
+              "instructions": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 10000,
+                "description": "Instructions the assistant should follow each time this task runs."
+              },
+              "schedule": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "at",
+                        "description": "One-time schedule kind. Use this for one-off reminders, one final reminder, or any task that should run once and then stop."
+                      },
+                      "at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                        "description": "Exact date-time when the task should run. One-time scheduled tasks are deleted automatically after they fire.",
+                        "examples": ["2026-05-21T14:30:00.000Z"]
+                      }
+                    },
+                    "required": ["kind", "at"],
+                    "additionalProperties": false,
+                    "description": "One-time assistant schedule."
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "every",
+                        "description": "Fixed-interval recurring schedule kind."
+                      },
+                      "everySeconds": {
+                        "type": "integer",
+                        "minimum": 60,
+                        "maximum": 31536000,
+                        "description": "Interval between task runs, in seconds."
+                      },
+                      "anchorAt": {
+                        "description": "Optional timestamp that anchors the repeating schedule.",
+                        "examples": ["2026-05-21T14:30:00.000Z"],
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      }
+                    },
+                    "required": ["kind", "everySeconds"],
+                    "additionalProperties": false,
+                    "description": "Fixed-interval recurring assistant schedule."
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "cron",
+                        "description": "Cron recurring schedule kind. Use only for work that should continue until the scheduled task is changed, paused, or deleted; there is no cron 'until' field."
+                      },
+                      "expr": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200,
+                        "description": "Cron expression for recurring runs."
+                      },
+                      "timezone": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100,
+                        "description": "IANA timezone for evaluating the cron schedule.",
+                        "examples": ["America/Toronto"]
+                      }
+                    },
+                    "required": ["kind", "expr", "timezone"],
+                    "additionalProperties": false,
+                    "description": "Cron-based recurring assistant schedule."
+                  }
+                ],
+                "description": "When this scheduled task should run."
+              },
+              "status": {
+                "default": "active",
+                "description": "Initial status for this seed-created scheduled task.",
+                "type": "string",
+                "enum": ["active", "paused"]
+              }
+            },
+            "required": ["key", "title", "instructions", "schedule"],
+            "additionalProperties": false,
+            "description": "Source-declared scheduled assistant work created by the client seed."
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "initialGuidance": {
+      "description": "Create-only initial DB-owned profile guidance rows for a missing profile. Once the profile has launched, these source declarations are stale bootstrap data; update live guidance in the database instead of editing or upserting seed rows.",
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 120,
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "description": "Stable DB-owned profile guidance key. Unique per profile while active."
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "Short maintainer-facing guidance title."
+              },
+              "selectorDescription": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000,
+                "description": "Selector-facing description used to decide when this profile guidance should be loaded."
+              },
+              "bodyMarkdown": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 50000,
+                "description": "Markdown guidance body stored in the control database."
+              }
+            },
+            "required": ["key", "title", "selectorDescription", "bodyMarkdown"],
+            "additionalProperties": false,
+            "description": "Create-only initial profile guidance row. Seed files bootstrap missing profiles; after launch, profile guidance is DB-owned and editing this source file must not update existing rows."
+          }
+        },
+        { "type": "null" }
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "profile",
+    "portalUser",
+    "initialAssistantName",
+    "initialCapabilities",
+    "initialChannels",
+    "initialWritePolicy",
+    "initialAssistantWorkRoutes",
+    "initialScheduledTasks"
+  ],
+  "additionalProperties": false,
+  "description": "Maintainer-owned source for one AI assistants client initial DB seed.",
+  "definitions": {
+    "__schema0": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" },
+        { "type": "null" },
+        { "type": "array", "items": { "$ref": "#/definitions/__schema0" } },
+        {
+          "type": "object",
+          "propertyNames": { "type": "string" },
+          "additionalProperties": { "$ref": "#/definitions/__schema0" }
+        }
+      ]
+    }
+  },
+  "$comment": "Generated from scripts/clients/schema.ts by npm run clients -- schema. Do not edit by hand.",
+  "title": "AI Assistants Client Seed"
+}
