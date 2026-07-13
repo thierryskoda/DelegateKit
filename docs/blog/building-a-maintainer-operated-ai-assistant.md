@@ -22,24 +22,7 @@ The model is allowed to reason flexibly inside boundaries that deterministic cod
 - Webhooks, schedules, work items, and leased jobs make asynchronous work observable and retryable.
 - Raw events preserve enough evidence to debug behavior and propose targeted improvements.
 
-The architecture looks roughly like this:
-
-```mermaid
-flowchart LR
-    U["User, portal, schedule, or provider event"] --> API["Hono backend API"]
-    API --> R["Profile-aware agent runtime"]
-    R --> S["Turn-specific tool and guidance selection"]
-    S --> T["Typed capability tools"]
-    T --> W["Durable write-action gate"]
-    T --> P["Backend provider adapters"]
-    W --> P
-    P --> X["Nango proxy or provider API"]
-    T --> D[("Supabase control plane and private artifacts")]
-    E["Webhooks and schedules"] --> Q["Leased jobs and assistant work items"]
-    Q --> R
-    R --> L["Raw agent event ledger"]
-    L --> C["Connect portal, diagnostics, and learning review"]
-```
+In practice, a request moves from a user, schedule, or provider event into the profile-aware backend. The runtime selects relevant tools and guidance, capability modules handle provider work behind deterministic policy checks, and the system records artifacts, actions, jobs, and raw events as durable evidence.
 
 There are three user-facing surfaces today:
 

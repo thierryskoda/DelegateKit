@@ -1,387 +1,69 @@
 What I learned building an AI assistant that can do real work
-
-The question that led me to build DelegateKit was simple:
-
-What does an AI assistant need once it can do more than generate text?
-
-The moment it can read email, update a CRM, move files, send documents for signature, or call someone, the hard part stops being the chat interface.
-
-The hard part becomes identity, evidence, permissions, retries, provider state, human review, and being able to prove what actually happened.
-
-That is what I have been exploring with DelegateKit.
-
-It is an open-source TypeScript project for building private, maintainer-operated AI assistants. A builder configures the assistant, connects its accounts, chooses what it can do, decides which actions need approval, and continues operating the system alongside the person using it.
-
-This is not a general autonomous agent framework or a no-code workflow builder.
-
-It is my attempt to make an AI assistant behave more like an accountable application.
-
-
-The main idea: bounded agency
-
-Most agent demos give a model a prompt, attach a large collection of tools, and let it decide what to do.
-
-DelegateKit also has an agent loop, but I have come to see the loop as one relatively small part of the system.
-
-The useful architecture is everything around it.
-
-The model can reason flexibly, but deterministic code owns the important boundaries:
-
-• A profile defines the assistant’s identity, accounts, capabilities, guidance, and write policy.
-
-• Typed tool contracts define exactly what the model can request and what evidence it receives back.
-
-• The backend owns credentials, provider calls, validation, and data isolation.
-
-• External writes become durable actions with lifecycle state, deduplication, and optional human approval.
-
-• Files become profile-scoped artifacts with hashes instead of anonymous blobs passed between prompts.
-
-• Webhooks, schedules, work items, and leased jobs make asynchronous work observable and retryable.
-
-• A raw event ledger preserves enough evidence to debug behavior and propose improvements.
-
-The model gets room to reason, but it does not get to be the database, policy engine, integration layer, and auditor at the same time.
-
-
-A profile is more than a prompt
-
-One of the earliest lessons was that a private assistant needs a real product boundary.
-
-In DelegateKit, that boundary is the profile.
-
-A profile has an identity and timezone, an assistant, one or more channels, connected provider accounts, capability bindings, guidance, scheduled tasks, event routes, files, artifacts, actions, and a write policy.
-
-Everything important is scoped back to it.
-
-The profile can enable capabilities such as Gmail, Google Drive, Monday, BoldSign, document generation, or file analysis.
-
-It can then define a different policy for every kind of write.
-
-For example, reading email might happen immediately. Sending an email might require review. Deleting a file might be blocked completely.
-
-This is a much stronger boundary than writing “ask before doing anything sensitive” in a system prompt.
-
-The open-source repository contains schemas, contracts, templates, and sanitized test profiles. Real client data, credentials, provider connection IDs, downloaded files, runtime logs, and live guidance stay outside the source tree.
-
-That separation matters when the same code is used to operate private assistants for different people.
-
-
-What happens when you send one message
-
-A normal assistant turn does much more than send text to a model.
-
-The current runtime uses Mastra with a DeepSeek-backed model. When a message arrives, the backend:
-
-1. Authenticates the channel and resolves the sender to the correct profile.
-
-2. Creates a session key isolated to that assistant, channel, and sender.
-
-3. Loads a bounded slice of recent conversation history.
-
-4. Saves inbound attachments as private, hashed artifacts.
-
-5. Selects the smallest useful tool surface for the current request.
-
-6. Selects the source and client-specific guidance relevant to this turn.
-
-7. Runs the main agent with the selected guidance, evidence, and tools.
-
-8. Sends every tool call back through the backend for identity, schema, readiness, and ownership checks.
-
-9. Records the final answer, tool activity, model usage, selections, deliveries, and failures.
-
-The generated inventory currently contains 183 canonical tool contracts.
-
-Giving all of them to the main model on every message would create a large and ambiguous prompt. DelegateKit uses a small structured decision first to select a whole capability, such as Gmail or Drive, or just one or two exact tools.
-
-If that selector fails, it falls back to the full candidate set instead of silently removing something the assistant may need.
-
-This also makes tool choice observable. I can inspect what was available, what was selected, and whether a bad result came from routing, guidance, the tool contract, the provider, or the main model.
-
-
-Tools are interfaces for a probabilistic caller
-
-In normal application code, a function signature is written for another engineer and a compiler.
-
-Agent tools are different. Their primary caller can misunderstand names, omit fields, invent fields, or overstate a result.
-
-I now think of agent tool design as API design for a probabilistic caller.
-
-Every DelegateKit tool contract owns:
-
-• A stable name and capability surface
-
-• Whether it is a read or write
-
-• A standardized description explaining when to use it and when not to
-
-• A validated input schema
-
-• A validated output schema
-
-• An execution kind
-
-• An external action type when a real side effect is involved
-
-Successful backend tools return validated data. Failed calls return a small, client-safe error.
-
-External writes return an even more focused receipt: a deterministic result sentence, an action ID, lifecycle status, and recovery detail only when something failed or became uncertain.
-
-That result sentence comes from backend code, not the model.
-
-The assistant should not have to study a raw Gmail response and guess whether an email was sent. The backend should translate the provider result into the shortest truthful statement the assistant can use.
-
-
-Provider-first integrations
-
-I initially found generic ideas such as “email,” “calendar,” and “files” attractive.
-
-In practice, they hid the differences that mattered.
-
-Gmail and Outlook have different thread, send, authentication, and webhook behavior. Google Calendar and Outlook Calendar expose different fields and limitations. OneDrive and SharePoint need different discovery and routing. Monday stops looking like a generic CRM as soon as the assistant works with boards, groups, columns, subitems, and updates.
-
-DelegateKit therefore uses provider-first capabilities.
-
-The user can still say “check my email,” but the system remains explicit about whether it is calling Gmail or Outlook.
-
-Nango owns OAuth and token-injecting proxy transport. The TypeScript backend owns provider HTTP calls, payload mapping, normalization, validation, diagnostics, and write execution.
-
-Google uses one shared OAuth account for Gmail, Calendar, and Drive, while those capabilities remain separate internally. Shared authentication does not require pretending the products behave the same way.
-
-Some providers use backend-managed credentials instead of OAuth. Those still need profile isolation.
-
-BoldSign is a good example. Multiple profiles can share one managed API account, but a database ownership ledger assigns each document to exactly one profile. Unknown historical documents remain invisible until a maintainer explicitly assigns them.
-
-The shared credential is transport. It is not the privacy boundary.
-
-
-A write is a durable action
-
-Sending an email, updating a CRM record, moving a file, creating a calendar event, or starting a call should not be treated as a disposable tool invocation.
-
-In DelegateKit, an external write first becomes a validated action plan.
-
-That plan contains the provider payload, a stable request hash, a deduplication key, and human-readable review details.
-
-The profile policy then resolves it into one of three modes:
-
-• Auto-execute it
-
-• Hold it for review
-
-• Block it
-
-The action has a lifecycle independent of the model turn. It can be pending approval, processing, executed, rejected, expired, failed, unknown, or blocked.
-
-Repeated equivalent calls join the existing action instead of blindly repeating a side effect.
-
-This means the assistant can say “this is waiting for your approval” because that is a database fact, not a conversational promise.
-
-The Connect web app shows the exact proposed change. Approving it executes the stored payload that was reviewed. The assistant cannot quietly change the recipient or fields between preview and execution.
-
-Connect also handles OAuth connections, follow-up proposals, learning recommendations, and secure browser handoffs.
-
-It is intentionally small. It is the human control plane around the assistant, not a second full product.
-
-
-Artifacts connect the capabilities
-
-Operational work often crosses several systems through a file.
-
-A PDF can arrive in Telegram, be found in Drive, get analyzed, be rendered from a DOCX template, be sent through BoldSign, and then be filed back into a provider folder.
-
-Passing raw bytes through model context would make that fragile.
-
-DelegateKit stores files as private, profile-scoped artifacts in Supabase Storage. Each artifact records its filename, type, size, origin, and SHA-256 hash.
-
-Every capability consuming the file validates its profile ownership and, when needed, its expected hash and MIME type.
-
-The hash becomes important when the user approved one exact preview and a later provider action needs to use that exact file.
-
-Document tools stay provider-independent. They can create PDFs, convert sources, render DOCX templates with explicit values, produce previews, and emit both DOCX and PDF artifacts.
-
-File-analysis tools can extract deterministic text, inspect images and scanned PDFs, or return structured data.
-
-Provider tools can download files into the artifact store or upload an existing artifact. BoldSign and email can consume those artifacts without knowing how they were created.
-
-The composition rule is simple:
-
-Document tools produce artifacts. Provider tools operate on artifacts. Profile guidance decides the business sequence.
-
-
-Proactive work without invisible autonomy
-
-A useful assistant cannot depend on the user opening a chat every time.
-
-DelegateKit supports scheduled work and provider events.
-
-Scheduled tasks can run once, at an interval, or from a timezone-aware cron expression.
-
-Provider webhooks can normalize events such as incoming email, calendar changes, Drive changes, Monday updates, and BoldSign status changes.
-
-Profile work routes decide which event types matter. A small relevance classifier filters obvious noise according to the route instructions and fails open if classification itself fails.
-
-Provider deliveries, work items, and backend jobs use deduplication keys where retries or duplicate callbacks can happen. Jobs carry priority, attempt limits, leases, and retry state.
-
-If the same provider callback arrives twice, it should join existing work instead of producing two client-visible follow-ups.
-
-Schedules and provider events eventually run the same profile-aware assistant. Their instructions and event payloads are explicit task evidence, not hidden prompts pretending to be user messages.
-
-
-Context without a generic memory bucket
-
-“Give the model more context” works until you have several providers, long conversations, client-specific procedures, and years of activity.
-
-DelegateKit uses several explicit context owners:
-
-• Recent messages provide conversational continuity.
-
-• Provider tools remain the source of truth for current email, calendar, CRM, and file state.
-
-• Profile activity exposes durable conclusions from previous work.
-
-• Source-authored guidance explains reusable provider behavior.
-
-• Database-owned guidance explains the client’s workflows and preferences.
-
-• Schedules and event routes own recurring or proactive work.
-
-The runtime loads compact guidance indexes and injects only the markdown relevant to the current turn.
-
-DelegateKit previously had a generic profile memory concept. I removed it because preferences, workflow instructions, live facts, and recurring work kept overlapping.
-
-The rule now is that durable state needs an explicit owner.
-
-Reusable behavior belongs in guidance. Current business facts belong in providers. Recurring work belongs in schedules. Event-driven work belongs in routes.
-
-If an observation has no clear consumer, it should not be persisted just because it might be useful someday.
-
-
-Learning without pretending it is magic
-
-Each agent run writes typed raw events for messages, model responses, tool calls, tool results, actions, artifacts, and work items.
-
-A daily learning review examines a bounded activity window for each profile.
-
-It can propose changes to profile guidance, scheduled tasks, provider-event routes, or no state at all when the evidence does not justify a change.
-
-Every recommendation includes evidence references, confidence, counter-evidence, a typed patch, and revision expectations.
-
-Only a narrow class of changes can apply automatically: high-confidence instruction updates to an existing schedule or event route, backed entirely by explicit client messages.
-
-Creating, deleting, pausing, or structurally changing durable behavior requires approval. Guidance changes also require approval in Connect.
-
-This is less magical than saying “the assistant learns you automatically.”
-
-That is exactly the point.
-
-It creates a traceable path from observed friction to a small proposed change.
-
-
-What it can do today
-
-The current capabilities include Gmail, Outlook Mail, Google and Outlook calendars, Google Drive, OneDrive, SharePoint, Microsoft To Do, Monday, BoldSign, document generation, file analysis, public web research, browser automation, Telegram delivery, Twilio SMS, and outbound phone calls.
-
-The interesting examples are the ones that combine several of them.
-
-A user can ask, “What is going on with this deal?”
-
-The assistant can search Monday for the active record, read the latest client email, inspect the Drive folder, check BoldSign status, and return the current stage, blockers, pending signature, and next action.
-
-If Gmail is disconnected, it should still report the verified CRM and signature state and name email as the unchecked source. Partial evidence should produce a partial but truthful answer.
-
-Another workflow starts with a DOCX template in Drive.
-
-The assistant saves it as an artifact, renders explicit field values, creates a PDF preview, and extracts the rendered text to verify that the placeholders were replaced.
-
-The user approves that exact preview. Only then does the BoldSign action send the hash-verified PDF for signature.
-
-A receipt image, PDF, or CSV can be analyzed and reconciled against Gmail evidence. The assistant can report matched, ambiguous, and missing items, then wait for an explicit filing or CRM instruction.
-
-It can summarize today’s calendar, find free meeting slots, and wait for a selected time and clear attendees before creating the event.
-
-It can also hand browser control to the user when a website requires login, MFA, CAPTCHA, or another sensitive step. The user completes that step in a secure live browser instead of sharing secrets in chat.
-
-
-Testing the system, not only the model
-
-DelegateKit separates deterministic capability coverage from natural-language product scenarios.
-
-Capability E2Es call canonical tool contracts through the real backend boundary. A coverage ledger fails if a contract is neither exercised nor explicitly waived.
-
-These tests verify schemas, provider adapters, action policy, artifacts, storage, webhooks, and result shapes without depending on a model choosing the right tool.
-
-A separate scenario catalog describes realistic client requests and judge criteria. It currently contains 36 green product paths covering ambiguous recipients, missing document fields, provider failures, duplicate webhooks, session isolation, prompt injection, PDF analysis, calendars, calls, and CSV reconciliation.
-
-The catalog is not an executable coverage claim by itself. Exact prompts, fixtures, provider evidence, tool assertions, and LLM judges belong in scenario E2Es.
-
-Provider sandboxes keep the tests reproducible. Dynamic runtime lanes lease isolated Supabase instances so E2Es can run in parallel without sharing profile state.
-
-The repository does not use package-local unit test frameworks. TypeScript, Zod, deterministic source guards, generated inventories, semantic checks, and real E2Es divide that work instead.
-
-That is an opinionated tradeoff: more emphasis on system boundaries and less on testing small implementation details in isolation.
-
-
-The lessons I keep coming back to
-
-The best place to constrain an agent is usually outside the prompt.
-
-Prompt rules matter, but ownership checks, schemas, write policies, hashes, idempotency keys, and backend receipts are stronger boundaries.
-
-Agent tool design is API design.
-
-Names, descriptions, required fields, output size, and failure wording materially change what the model does.
-
-External writes need durable identity.
-
-A real side effect needs a stable action record, a deduplication key, lifecycle state, a reviewed payload, and provider evidence.
-
-Generic provider abstractions often move complexity instead of removing it.
-
-Provider-first surfaces can look repetitive, but the contracts are more honest and easier to test.
-
-Files need a first-class internal representation.
-
-Profile-scoped, hash-verified artifacts make multi-provider document workflows much easier to reason about.
-
-“Memory” is not a sufficient data model.
-
-Durable information should live where its lifecycle and consumer are clear.
-
-Proactive behavior needs the same rigor as user-triggered behavior.
-
-Webhooks and schedules are not permission to bypass tool contracts, write policy, or evidence.
-
-And finally, maintainer-operated is a useful product constraint.
-
-It accepts that capable assistants still need someone to configure integrations, inspect diagnostics, approve sensitive changes, and improve the system.
-
-That constraint led me toward a simpler and more accountable architecture than pretending the assistant can safely operate everything by itself.
-
-
-Where the project is now
-
-DelegateKit is open source, but it is not a hosted product.
-
-The repository intentionally does not include a production deployment target, real client profiles, provider credentials, or private operator runbooks. You bring your own infrastructure and decide how much of the capability surface to enable.
-
-Some parts are still experimental. The ChatGPT MCP bridge is disabled in production and exposes only a curated read-only subset. The Connect portal is a focused control plane, not a general admin suite. Telegram is the primary real chat ingress in the public code.
-
-There are also real costs to this architecture: many explicit contracts, provider-specific packages, forward migrations, review screens, E2E infrastructure, and much more backend code than an agent demo needs.
-
-I think those costs become worth paying once an assistant can affect real systems.
-
-DelegateKit started from an agent, but the project became a study of the systems required to trust one.
-
-The model is only one component.
-
-The rest of the work is building clear boundaries around identity, context, tools, provider access, files, side effects, asynchronous execution, human decisions, and evidence.
-
-When those pieces are explicit, an assistant can do surprisingly broad work without being trusted to invent its own reality.
-
-The source is here:
-
-https://github.com/thierryskoda/DelegateKit
-
-I would love to hear how other builders are approaching these same boundaries.
+The question that led me to build DelegateKit was simple: what does an AI assistant need once it can do more than generate text? The moment it can read email, update a CRM, move files, send documents for signature, or call someone, the hard part stops being the chat interface. It becomes identity, evidence, permissions, retries, provider state, human review, and being able to prove what actually happened.
+That is what I have been exploring with DelegateKit, an open-source TypeScript project for building private, maintainer-operated AI assistants. A builder configures the assistant, connects its accounts, chooses what it can do, decides which actions need approval, and continues operating the system alongside the person using it. It is not a general autonomous agent framework or a no-code workflow builder; it is my attempt to make an AI assistant behave more like an accountable application.
+1. Bounded agency
+Most agent demos give a model a prompt, attach a large collection of tools, and let it decide what to do. DelegateKit also has an agent loop, but I have come to see that loop as one relatively small part of the system. The useful architecture is everything around it.
+The model can reason flexibly, but deterministic code owns the important boundaries. A profile defines the assistant’s identity, accounts, capabilities, guidance, and write policy. Typed contracts define exactly what the model can request, while the backend owns credentials, provider calls, validation, data isolation, and side-effect execution.
+External writes become durable actions with lifecycle state, deduplication, and optional human approval. Files become profile-scoped artifacts with hashes instead of anonymous blobs passed between prompts. Webhooks, schedules, work items, and leased jobs make asynchronous work observable and retryable, while a raw event ledger preserves enough evidence to debug behavior and propose improvements.
+In practice, a request moves from a user, schedule, or provider event into a profile-aware backend. The runtime selects the relevant tools and guidance, capability modules handle provider work behind deterministic checks, and the system records actions, artifacts, jobs, and events as durable evidence. The model gets room to reason, but it does not get to be the database, policy engine, integration layer, and auditor at the same time.
+The current stack is a TypeScript monorepo with a Hono backend, Mastra and DeepSeek for the main agent runtime, Supabase for the control plane and private artifact storage, Nango for OAuth transport, and a React Connect portal for approvals and account setup. Telegram is the primary external chat ingress, with Browserbase and Stagehand supporting secure browser handoffs and Twilio supporting SMS and outbound calls.
+2. The profile is the real boundary
+One of the earliest lessons was that a private assistant needs a stronger product boundary than a prompt. In DelegateKit, that boundary is the profile. A profile has an identity and timezone, an assistant, one or more channels, connected provider accounts, capability bindings, guidance, scheduled tasks, event routes, files, artifacts, actions, and a write policy.
+Everything important is scoped back to that profile. It can enable capabilities such as Gmail, Google Drive, Monday, BoldSign, document generation, or file analysis, then define a different policy for each kind of write. Reading email might happen immediately, sending an email might require review, and deleting a file might be blocked completely.
+That is a much stronger boundary than writing “ask before doing anything sensitive” in a system prompt. The open-source repository contains schemas, contracts, templates, and sanitized test profiles. Real client data, credentials, provider connection IDs, downloaded files, runtime logs, and live guidance stay outside the source tree.
+3. What happens when you send one message
+A normal assistant turn does much more than send text to a model. The backend authenticates the channel, resolves the sender to the correct profile, creates an isolated session key, and loads a bounded slice of recent conversation history. Inbound attachments are saved as private, hashed artifacts before the model can use them.
+The runtime then selects the smallest useful tool surface and the source and client-specific guidance relevant to that request. It runs the main agent with those tools and evidence, but every tool call still returns through the backend for identity, schema, readiness, and ownership checks. The system records the final answer, tool activity, model usage, selections, deliveries, and failures.
+The generated inventory currently contains 183 canonical tool contracts. Giving all of them to the model on every turn would create a large and ambiguous prompt, so DelegateKit first makes a small structured decision: select an entire capability such as Gmail or Drive, or select one or two exact tools. If that selector fails, the runtime falls back to the full candidate set instead of silently removing something the assistant may need.
+This also makes tool choice observable. I can inspect what was available, what was selected, and whether a bad result came from routing, guidance, the tool contract, the provider, or the main model. That separation is useful because “the agent got it wrong” is rarely a precise enough diagnosis.
+4. Tools are APIs for a probabilistic caller
+In normal application code, a function signature is written for another engineer and a compiler. Agent tools are different because their primary caller can misunderstand names, omit fields, invent fields, or overstate a result. I now think of agent tool design as API design for a probabilistic caller.
+Every DelegateKit tool contract has a stable name, a capability surface, a read-or-write classification, a description of when it should and should not be used, validated input and output schemas, and an explicit execution kind. If the tool creates a real side effect, the contract also names the external action type. These details materially change how reliably the model uses the tool.
+Successful backend tools return validated data, while failed calls return a small, client-safe error. External writes return an even more focused receipt: a deterministic result sentence, an action ID, lifecycle status, and recovery detail only when something failed or became uncertain. That result sentence comes from backend code, not the model.
+The assistant should not have to study a raw Gmail response and guess whether an email was sent. The backend should translate the provider result into the shortest truthful statement the assistant can use. This keeps provider complexity out of the conversation and gives the system something concrete to audit.
+I also moved toward provider-first integrations instead of generic abstractions such as “email,” “calendar,” and “files.” Gmail and Outlook differ in their thread, send, authentication, and webhook behavior. Google Calendar and Outlook Calendar expose different fields and limitations, while Monday stops looking like a generic CRM as soon as the assistant works with boards, groups, columns, subitems, and updates.
+The user can still say “check my email,” but the system remains explicit about whether it is calling Gmail or Outlook. Nango owns OAuth and token-injecting proxy transport; the TypeScript backend owns provider HTTP calls, payload mapping, normalization, validation, diagnostics, and write execution. Shared authentication does not require pretending that different products behave the same way.
+Some providers use backend-managed credentials instead of OAuth, but those still need profile isolation. BoldSign is a good example: multiple profiles can share one managed API account, while a database ownership ledger assigns each document to exactly one profile. The shared credential is transport, not the privacy boundary.
+5. A write is a durable action
+Sending an email, updating a CRM record, moving a file, creating a calendar event, or starting a call should not be treated as a disposable tool invocation. In DelegateKit, an external write first becomes a validated action plan containing the provider payload, a stable request hash, a deduplication key, and human-readable review details. The profile policy then decides whether to execute it automatically, hold it for review, or block it.
+The action has a lifecycle independent of the model turn. It can be pending approval, processing, executed, rejected, expired, failed, unknown, or blocked. Repeated equivalent calls join the existing action instead of blindly repeating a side effect.
+This means the assistant can say “this is waiting for your approval” because that is a database fact, not a conversational promise. The Connect web app shows the exact proposed change, and approval executes the stored payload that was reviewed. The assistant cannot quietly change the recipient or fields between preview and execution.
+Connect also handles OAuth connections, follow-up proposals, learning recommendations, and secure browser handoffs. It is intentionally small: it is the human control plane around the assistant, not a second full product.
+6. Artifacts connect the capabilities
+Operational work often crosses several systems through a file. A PDF can arrive in Telegram, be found in Drive, get analyzed, be rendered from a DOCX template, be sent through BoldSign, and then be filed back into a provider folder. Passing raw bytes through model context would make that workflow fragile.
+DelegateKit stores files as private, profile-scoped artifacts in Supabase Storage. Each artifact records its filename, type, size, origin, and SHA-256 hash. Every capability consuming the file validates its profile ownership and, when needed, its expected hash and MIME type.
+The hash matters when the user approves one exact preview and a later provider action needs to use that exact file. Document tools can create PDFs, convert sources, render DOCX templates with explicit values, produce previews, and emit both DOCX and PDF artifacts. File-analysis tools can extract deterministic text, inspect images and scanned PDFs, or return structured data.
+Provider tools can download files into the artifact store or upload an existing artifact. BoldSign and email can consume those artifacts without knowing how they were created. The composition rule is simple: document tools produce artifacts, provider tools operate on artifacts, and profile guidance decides the business sequence.
+7. Proactive work without invisible autonomy
+A useful assistant cannot depend on the user opening a chat every time, so DelegateKit supports scheduled work and provider events. Scheduled tasks can run once, at an interval, or from a timezone-aware cron expression. Provider webhooks normalize events such as incoming email, calendar changes, Drive changes, Monday updates, and BoldSign status changes.
+Profile work routes decide which event types matter. A small relevance classifier filters obvious noise according to the route instructions and fails open if classification itself fails. Provider deliveries, work items, and backend jobs use deduplication keys anywhere retries or duplicate callbacks can occur.
+Jobs carry priority, attempt limits, leases, and retry state. If the same provider callback arrives twice, it should join existing work instead of producing two client-visible follow-ups. Schedules and provider events eventually run the same profile-aware assistant, with explicit instructions and event payloads as task evidence rather than hidden prompts pretending to be user messages.
+8. Context needs explicit owners
+“Give the model more context” works until there are several providers, long conversations, client-specific procedures, and years of activity. DelegateKit instead gives each kind of context a clear owner. Recent messages provide conversational continuity, provider tools remain the source of truth for current business state, profile activity exposes durable conclusions, and guidance explains reusable provider behavior and client-specific workflows.
+Schedules own recurring work, while event routes own event-driven work. The runtime loads compact guidance indexes and injects only the material relevant to the current turn. DelegateKit previously had a generic profile memory concept, but I removed it because preferences, workflow instructions, live facts, and recurring work kept overlapping.
+The rule now is that durable state needs an explicit owner. Reusable behavior belongs in guidance, current business facts belong in providers, recurring work belongs in schedules, and event-driven work belongs in routes. If an observation has no clear consumer, it should not be persisted merely because it might be useful someday.
+The learning system follows the same principle. Each agent run writes typed raw events for messages, model responses, tool calls, tool results, actions, artifacts, and work items. A daily review examines a bounded activity window and can propose a change to profile guidance, a schedule, an event route, or no state at all when the evidence does not justify one.
+Every recommendation includes evidence references, confidence, counter-evidence, a typed patch, and revision expectations. Only a narrow class of high-confidence instruction updates can apply automatically, and they must be backed entirely by explicit client messages. Creating, deleting, pausing, or structurally changing durable behavior requires approval.
+This is less magical than saying “the assistant learns you automatically,” and that is exactly the point. It creates a traceable path from observed friction to a small proposed change.
+9. What it can do today
+The current capabilities include Gmail, Outlook Mail, Google and Outlook calendars, Google Drive, OneDrive, SharePoint, Microsoft To Do, Monday, BoldSign, document generation, file analysis, public web research, browser automation, Telegram delivery, Twilio SMS, and outbound phone calls. The interesting examples are the ones that combine several of them.
+A user can ask, “What is going on with this deal?” The assistant can search Monday for the active record, read the latest client email, inspect the Drive folder, check BoldSign status, and return the current stage, blockers, pending signature, and next action. If Gmail is disconnected, it should still report the verified CRM and signature state and name email as the unchecked source; partial evidence should produce a partial but truthful answer.
+Another workflow starts with a DOCX template in Drive. The assistant saves it as an artifact, renders explicit field values, creates a PDF preview, and extracts the rendered text to verify that the placeholders were replaced. The user approves that exact preview, and only then does the BoldSign action send the hash-verified PDF for signature.
+A receipt image, PDF, or CSV can be analyzed and reconciled against Gmail evidence. The assistant can report matched, ambiguous, and missing items, then wait for an explicit filing or CRM instruction. It can also summarize a calendar, find free meeting slots, and wait for a selected time and clear attendees before creating the event.
+When a website requires login, MFA, CAPTCHA, or another sensitive step, the assistant can hand browser control to the user. The user completes that step in a secure live browser instead of sharing secrets in chat, then gives control back to the assistant.
+10. Testing the system, not only the model
+DelegateKit separates deterministic capability coverage from natural-language product scenarios. Capability E2Es call canonical tool contracts through the real backend boundary, and a coverage ledger fails if a contract is neither exercised nor explicitly waived. These tests verify schemas, provider adapters, action policy, artifacts, storage, webhooks, and result shapes without depending on a model choosing the right tool.
+A separate scenario catalog describes realistic client requests and judge criteria. It currently contains 36 green product paths covering ambiguous recipients, missing document fields, provider failures, duplicate webhooks, session isolation, prompt injection, PDF analysis, calendars, calls, and CSV reconciliation. The catalog is not an executable coverage claim by itself; exact prompts, fixtures, provider evidence, tool assertions, and LLM judges belong in scenario E2Es.
+Provider sandboxes keep the tests reproducible, while dynamic runtime lanes lease isolated Supabase instances so E2Es can run in parallel without sharing profile state. The repository does not use package-local unit test frameworks. TypeScript, Zod, deterministic source guards, generated inventories, semantic checks, and real E2Es divide that work instead.
+That is an opinionated tradeoff. The project places more emphasis on system boundaries and end-to-end behavior than on testing small implementation details in isolation.
+11. The lessons I keep coming back to
+The best place to constrain an agent is usually outside the prompt. Prompt rules matter, but ownership checks, schemas, write policies, hashes, idempotency keys, and backend receipts are stronger boundaries. Agent tool design is API design, and names, descriptions, required fields, output size, and failure wording materially change what the model does.
+External writes need durable identity. A real side effect needs a stable action record, a deduplication key, lifecycle state, a reviewed payload, and provider evidence. Generic provider abstractions often move complexity instead of removing it, while provider-first surfaces can be more honest and easier to test.
+Files need a first-class internal representation. Profile-scoped, hash-verified artifacts make multi-provider document workflows much easier to reason about. “Memory” is not a sufficient data model, because durable information should live where its lifecycle and consumer are clear.
+Proactive behavior needs the same rigor as user-triggered behavior. Webhooks and schedules are not permission to bypass tool contracts, write policy, or evidence. Maintainer-operated is also a useful product constraint because capable assistants still need someone to configure integrations, inspect diagnostics, approve sensitive changes, and improve the system.
+12. Where the project is now
+DelegateKit is open source, but it is not a hosted product. The repository intentionally does not include a production deployment target, real client profiles, provider credentials, or private operator runbooks. You bring your own infrastructure and decide how much of the capability surface to enable.
+Some parts are still experimental. The ChatGPT MCP bridge is disabled in production and exposes only a curated read-only subset, the Connect portal is a focused control plane rather than a general admin suite, and Telegram is the primary real chat ingress in the public code.
+There are real costs to this architecture: many explicit contracts, provider-specific packages, forward migrations, review screens, E2E infrastructure, and much more backend code than an agent demo needs. I think those costs become worth paying once an assistant can affect real systems.
+DelegateKit started from an agent, but the project became a study of the systems required to trust one. The model is only one component. The rest of the work is building clear boundaries around identity, context, tools, provider access, files, side effects, asynchronous execution, human decisions, and evidence.
+When those pieces are explicit, an assistant can do surprisingly broad work without being trusted to invent its own reality. The source is available at https://github.com/thierryskoda/DelegateKit, and I would love to hear how other builders are approaching these same boundaries.
