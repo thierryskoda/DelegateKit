@@ -1,5 +1,5 @@
 import { Check, MailPlus, Settings2, X } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useApprovalsUiStore } from "./approvals.store";
 import type { ConnectActionDetailDto } from "@ai-assistants/connect-api-contracts";
 import { Button, TextLink } from "../../shared/ui/button";
@@ -20,8 +20,10 @@ import type {
   ProposalRequest,
 } from "./approvals.api";
 import { DecisionExpiry } from "./decision-expiry";
+import { expiringSoonDecisions } from "./decision-urgency";
 
 type DetailPreview = NonNullable<ConnectActionDetailDto["preview"]>;
+type DecisionFilter = "all" | "expiringSoon";
 type PendingDecisionItem =
   | {
       kind: "action";
@@ -29,6 +31,7 @@ type PendingDecisionItem =
       priority: 0;
       label: "Needs approval";
       title: string;
+      expiresAt: string | null;
       detail: ConnectActionDetailDto;
       action: ApprovalRequest;
     }
@@ -39,6 +42,7 @@ type PendingDecisionItem =
       label: "Follow-up email";
       title: string;
       summary: string;
+      expiresAt: string | null;
       detail: ConnectActionDetailDto;
       proposal: ProposalRequest;
     }
@@ -51,6 +55,7 @@ type PendingDecisionItem =
       summary: string;
       rationale: string;
       createdAt: string;
+      expiresAt: null;
       detail: ConnectActionDetailDto;
       recommendation: LearningRecommendationRequest;
     };
@@ -177,6 +182,7 @@ function decisionItemsFromPendingRows({
         priority: 0,
         label: "Needs approval",
         title: action.detail.headline,
+        expiresAt: action.expiresAt,
         detail: action.detail,
         action,
       }),
@@ -189,6 +195,7 @@ function decisionItemsFromPendingRows({
         label: "Follow-up email",
         title: proposal.title,
         summary: proposal.summary,
+        expiresAt: proposal.expiresAt,
         detail: proposal.detail,
         proposal,
       }),
@@ -203,6 +210,7 @@ function decisionItemsFromPendingRows({
         summary: recommendation.summary,
         rationale: recommendation.rationale,
         createdAt: recommendation.createdAt,
+        expiresAt: null,
         detail: recommendation.detail,
         recommendation,
       }),
@@ -230,7 +238,7 @@ function ApprovalCard({
           <h3 className="break-words text-sm font-semibold leading-snug text-default sm:text-base">
             {item.title}
           </h3>
-          <DecisionExpiry expiresAt={item.action.expiresAt} />
+          <DecisionExpiry expiresAt={item.expiresAt} />
         </div>
 
         {item.detail.preview ? (
@@ -293,7 +301,7 @@ function ProposalCard({
               {item.title}
             </h3>
             <p className="break-words text-sm leading-relaxed text-secondary">{item.summary}</p>
-            <DecisionExpiry expiresAt={item.proposal.expiresAt} />
+            <DecisionExpiry expiresAt={item.expiresAt} />
           </div>
 
           {item.proposal.blockerSummary ? (
@@ -412,6 +420,7 @@ function LearningRecommendationCard({
 }
 
 export function ApprovalsPage({ profileId }: { profileId: string }) {
+  const [decisionFilter, setDecisionFilter] = useState<DecisionFilter>("all");
   const approvalsQuery = useApprovalsQuery(profileId);
   const proposalsQuery = useProposalsQuery(profileId);
   const learningRecommendationsQuery = useLearningRecommendationsQuery(profileId);
@@ -452,6 +461,8 @@ export function ApprovalsPage({ profileId }: { profileId: string }) {
       }),
     [pendingApprovals, pendingProposals, pendingLearningRecommendations],
   );
+  const expiringSoonItems = expiringSoonDecisions(pendingItems);
+  const visibleItems = decisionFilter === "expiringSoon" ? expiringSoonItems : pendingItems;
   const openDetailAction = useMemo(
     () => approvals.find((action) => action.id === openDetailActionId) ?? null,
     [approvals, openDetailActionId],
@@ -512,44 +523,77 @@ export function ApprovalsPage({ profileId }: { profileId: string }) {
       ) : null}
       {pendingItems.length ? (
         <section className="grid gap-3">
-          <h2 className="text-sm font-semibold text-default">Pending decisions</h2>
-          {pendingItems.map((item) => {
-            if (item.kind === "action") {
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-sm font-semibold text-default">Pending decisions</h2>
+            <div
+              className="flex flex-wrap gap-2"
+              role="group"
+              aria-label="Filter pending decisions"
+            >
+              <Button
+                aria-pressed={decisionFilter === "all"}
+                className="min-h-11 rounded-full"
+                size="compact"
+                variant={decisionFilter === "all" ? "primary" : "secondary"}
+                onClick={() => setDecisionFilter("all")}
+              >
+                All ({pendingItems.length})
+              </Button>
+              <Button
+                aria-pressed={decisionFilter === "expiringSoon"}
+                className="min-h-11 rounded-full"
+                size="compact"
+                variant={decisionFilter === "expiringSoon" ? "primary" : "secondary"}
+                onClick={() => setDecisionFilter("expiringSoon")}
+              >
+                Expiring soon ({expiringSoonItems.length})
+              </Button>
+            </div>
+          </div>
+          {visibleItems.length ? (
+            visibleItems.map((item) => {
+              if (item.kind === "action") {
+                return (
+                  <ApprovalCard
+                    key={`${item.kind}-${item.id}`}
+                    item={item}
+                    busy={decision.isPending && decision.variables?.actionId === item.id}
+                    onDecide={(nextDecision) => decide(item.action, nextDecision)}
+                  />
+                );
+              }
+              if (item.kind === "proposal") {
+                return (
+                  <ProposalCard
+                    key={`${item.kind}-${item.id}`}
+                    item={item}
+                    busy={
+                      proposalDecision.isPending &&
+                      proposalDecision.variables?.proposalId === item.id
+                    }
+                    onDecide={(nextDecision) => decideProposalCard(item.proposal, nextDecision)}
+                  />
+                );
+              }
               return (
-                <ApprovalCard
-                  key={`${item.kind}-${item.id}`}
-                  item={item}
-                  busy={decision.isPending && decision.variables?.actionId === item.id}
-                  onDecide={(nextDecision) => decide(item.action, nextDecision)}
-                />
-              );
-            }
-            if (item.kind === "proposal") {
-              return (
-                <ProposalCard
+                <LearningRecommendationCard
                   key={`${item.kind}-${item.id}`}
                   item={item}
                   busy={
-                    proposalDecision.isPending && proposalDecision.variables?.proposalId === item.id
+                    learningRecommendationDecision.isPending &&
+                    learningRecommendationDecision.variables?.recommendationId === item.id
                   }
-                  onDecide={(nextDecision) => decideProposalCard(item.proposal, nextDecision)}
+                  onDecide={(nextDecision) =>
+                    decideLearningRecommendationCard(item.recommendation, nextDecision)
+                  }
                 />
               );
-            }
-            return (
-              <LearningRecommendationCard
-                key={`${item.kind}-${item.id}`}
-                item={item}
-                busy={
-                  learningRecommendationDecision.isPending &&
-                  learningRecommendationDecision.variables?.recommendationId === item.id
-                }
-                onDecide={(nextDecision) =>
-                  decideLearningRecommendationCard(item.recommendation, nextDecision)
-                }
-              />
-            );
-          })}
+            })
+          ) : (
+            <EmptyState title="Nothing expiring soon.">
+              Pending decisions with more time remaining stay in the All view.
+            </EmptyState>
+          )}
         </section>
       ) : null}
       {openDetailAction ? (
