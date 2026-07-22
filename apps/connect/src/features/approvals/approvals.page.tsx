@@ -19,6 +19,7 @@ import type {
   LearningRecommendationRequest,
   ProposalRequest,
 } from "./approvals.api";
+import { DecisionExpiry } from "./decision-expiry";
 
 type DetailPreview = NonNullable<ConnectActionDetailDto["preview"]>;
 type PendingDecisionItem =
@@ -229,6 +230,7 @@ function ApprovalCard({
           <h3 className="break-words text-sm font-semibold leading-snug text-default sm:text-base">
             {item.title}
           </h3>
+          <DecisionExpiry expiresAt={item.action.expiresAt} />
         </div>
 
         {item.detail.preview ? (
@@ -291,6 +293,7 @@ function ProposalCard({
               {item.title}
             </h3>
             <p className="break-words text-sm leading-relaxed text-secondary">{item.summary}</p>
+            <DecisionExpiry expiresAt={item.proposal.expiresAt} />
           </div>
 
           {item.proposal.blockerSummary ? (

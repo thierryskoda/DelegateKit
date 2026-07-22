@@ -252,6 +252,7 @@ export const connectProfileActionDtoSchema = z
   .object({
     id: profileActionRowSchema.shape.id,
     status: profileActionStatusSchema,
+    expiresAt: profileActionRowSchema.shape.expires_at,
     detail: connectActionDetailSchema,
   })
   .strict();
@@ -511,6 +512,7 @@ export function toConnectProfileActionDto(
   const dto = {
     id: parsed.id,
     status: parsed.status,
+    expiresAt: parsed.expires_at,
     detail: connectActionDetailSchema.parse(detail),
   } satisfies ConnectActionDto;
   return connectProfileActionDtoSchema.parse(dto);
