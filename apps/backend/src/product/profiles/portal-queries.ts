@@ -9,10 +9,27 @@ import {
   listUserProfiles as listOwnedProfiles,
   requireOwnedProfile,
 } from "../../auth/profile-access";
+import { actionIsExpired, expireProfileAction } from "../actions/action-lifecycle";
 import type { AuthenticatedUser } from "../../auth/user-auth";
 import type { z } from "zod";
 
 type ProfileActionListQuery = z.infer<typeof profileActionListQuerySchema>;
+
+async function normalizeExpiredPortalActions(
+  db: SupabaseServiceClient,
+  actions: TableRow<"profile_actions">[],
+  statuses?: readonly TableRow<"profile_actions">["status"][],
+): Promise<TableRow<"profile_actions">[]> {
+  const normalized: TableRow<"profile_actions">[] = [];
+  for (const action of actions) {
+    const next =
+      action.status === "pending_approval" && actionIsExpired(action)
+        ? await expireProfileAction(db, action)
+        : action;
+    if (!statuses || statuses.includes(next.status)) normalized.push(next);
+  }
+  return normalized;
+}
 
 export async function listPortalProfiles(
   db: SupabaseServiceClient,
@@ -53,7 +70,11 @@ export async function listPortalProfileActions(
       .in("status", query.statuses)
       .order("created_at", { ascending: false })
       .limit(100);
-    return requireSupabaseRows("List profile actions", result.data, result.error);
+    return normalizeExpiredPortalActions(
+      db,
+      requireSupabaseRows("List profile actions", result.data, result.error),
+      query.statuses,
+    );
   }
 
   if (query.status) {
@@ -64,7 +85,11 @@ export async function listPortalProfileActions(
       .eq("status", query.status)
       .order("created_at", { ascending: false })
       .limit(100);
-    return requireSupabaseRows("List profile actions", result.data, result.error);
+    return normalizeExpiredPortalActions(
+      db,
+      requireSupabaseRows("List profile actions", result.data, result.error),
+      [query.status],
+    );
   }
 
   const [pendingResult, recentResult] = await Promise.all([
@@ -83,10 +108,10 @@ export async function listPortalProfileActions(
       .order("updated_at", { ascending: false })
       .limit(100),
   ]);
-  return [
+  return normalizeExpiredPortalActions(db, [
     ...requireSupabaseRows("List pending profile actions", pendingResult.data, pendingResult.error),
     ...requireSupabaseRows("List recent profile actions", recentResult.data, recentResult.error),
-  ];
+  ]);
 }
 
 export async function getPortalProfileAction(
