@@ -94,6 +94,7 @@ const SANDBOX_ONLY_E2E_FILES: ReadonlySet<string> = new Set([
   "tests/e2e/connect/connected-accounts-roundtrip-e2e.ts",
   "tests/e2e/connect/outlook-integration-grouping-e2e.ts",
   "tests/e2e/connect/portal-approval-expiry-e2e.ts",
+  "tests/e2e/connect/portal-proposal-expiry-e2e.ts",
   "tests/e2e/connect/telegram-mini-app-session-e2e.ts",
   "tests/e2e/others/agent-activity-context-e2e.ts",
   "tests/e2e/others/boldsign-webhook-isolation-e2e.ts",

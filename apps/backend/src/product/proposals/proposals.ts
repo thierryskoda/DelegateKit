@@ -121,9 +121,20 @@ export async function listPortalProfileProposals(
     .in("status", statuses)
     .order("updated_at", { ascending: false })
     .limit(100);
-  return requireSupabaseRows("List profile proposals", result.data, result.error).map((row) =>
-    profileProposalRowSchema.parse(row),
+  const proposals = requireSupabaseRows("List profile proposals", result.data, result.error).map(
+    (row) => profileProposalRowSchema.parse(row),
   );
+  const normalized: TableRow<"profile_proposals">[] = [];
+  for (const proposal of proposals) {
+    const next =
+      proposal.status === "proposed" &&
+      proposal.expires_at &&
+      Date.parse(proposal.expires_at) <= Date.now()
+        ? await markProposalExpired(db, proposal)
+        : proposal;
+    if (statuses.some((status) => status === next.status)) normalized.push(next);
+  }
+  return normalized;
 }
 
 export async function getPortalProfileProposal(
