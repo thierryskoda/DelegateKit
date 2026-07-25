@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { test } from "node:test";
 import { requireSupabaseData } from "@ai-assistants/control-db";
-import { listPortalProfileActions } from "../../../apps/backend/src/test-support/actions";
+import {
+  expireProfileAction,
+  listPortalProfileActions,
+} from "../../../apps/backend/src/test-support/actions";
 import { cleanupTestingProfileActions } from "../helpers/fixtures/testing-profile-actions-fixture";
 import { attachE2eSupabase } from "../helpers/processes/attach-supabase";
 import { useE2eDb } from "../helpers/db/e2e-db";
@@ -22,6 +25,10 @@ test("Portal pending actions expire stale approvals before listing them.", async
     .insert(
       [
         { title: "Expired approval", expiresAt: new Date(Date.now() - 60_000).toISOString() },
+        {
+          title: "Concurrent expired approval",
+          expiresAt: new Date(Date.now() - 60_000).toISOString(),
+        },
         { title: "Live approval", expiresAt: new Date(Date.now() + 10 * 60_000).toISOString() },
       ].map((action) => ({
         profile_id: PROFILE_ID,
@@ -47,6 +54,19 @@ test("Portal pending actions expire stale approvals before listing them.", async
     inserted.error,
   );
   run.cleanup.add(() => cleanupTestingProfileActions(db, actions, { runId: run.runId }));
+
+  const concurrentAction = actions.find((action) =>
+    action.title.startsWith("Concurrent expired approval"),
+  );
+  assert.ok(concurrentAction);
+  const concurrentlyExpired = await Promise.all([
+    expireProfileAction(db, concurrentAction),
+    expireProfileAction(db, concurrentAction),
+  ]);
+  assert.deepEqual(
+    concurrentlyExpired.map((action) => action.status),
+    ["expired", "expired"],
+  );
 
   const listed = await listPortalProfileActions(db, PROFILE_ID, {
     statuses: ["pending_approval"],

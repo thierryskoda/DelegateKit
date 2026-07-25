@@ -29,21 +29,36 @@ export async function expireProfileAction(
     .eq("id", action.id)
     .eq("status", "pending_approval")
     .select()
-    .single();
-  const expired = requireSupabaseData(
-    `Expire profile action ${action.id}`,
-    updated.data,
-    updated.error,
-  );
-  emitDiagnostic(backendDiagnosticLogger(), "profile_action.expired", {
-    ok: true,
-    profile_id: expired.profile_id,
-    action_id: expired.id,
-    tool_call_id: expired.tool_call_id,
-    attrs: profileActionDiagnosticAttrs(expired, {
-      previous_status: action.status,
-      next_status: expired.status,
-    }),
-  });
+    .maybeSingle();
+  if (updated.error) {
+    requireSupabaseData(`Expire profile action ${action.id}`, updated.data, updated.error);
+  }
+  const wonExpiryRace = updated.data !== null;
+  let expired = updated.data;
+  if (!expired) {
+    const reloaded = await db
+      .from("profile_actions")
+      .select()
+      .eq("id", action.id)
+      .eq("status", "expired")
+      .maybeSingle();
+    expired = requireSupabaseData(
+      `Reload expired profile action ${action.id}`,
+      reloaded.data,
+      reloaded.error,
+    );
+  }
+  if (wonExpiryRace) {
+    emitDiagnostic(backendDiagnosticLogger(), "profile_action.expired", {
+      ok: true,
+      profile_id: expired.profile_id,
+      action_id: expired.id,
+      tool_call_id: expired.tool_call_id,
+      attrs: profileActionDiagnosticAttrs(expired, {
+        previous_status: action.status,
+        next_status: expired.status,
+      }),
+    });
+  }
   return expired;
 }
