@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { test } from "node:test";
 import { requireSupabaseData } from "@ai-assistants/control-db";
-import { listPortalProfileProposals } from "../../../apps/backend/src/test-support/proposals";
+import {
+  listPortalProfileProposals,
+  markProposalExpired,
+} from "../../../apps/backend/src/test-support/proposals";
 import { attachE2eSupabase } from "../helpers/processes/attach-supabase";
 import { useE2eDb } from "../helpers/db/e2e-db";
 import { createE2eRun, createMarker } from "../helpers/run/e2e-run";
@@ -21,6 +24,10 @@ test("Portal proposal listings expire stale proposed items.", async (t) => {
     .insert(
       [
         { title: "Expired proposal", expiresAt: new Date(Date.now() - 60_000).toISOString() },
+        {
+          title: "Concurrent expired proposal",
+          expiresAt: new Date(Date.now() - 60_000).toISOString(),
+        },
         { title: "Live proposal", expiresAt: new Date(Date.now() + 10 * 60_000).toISOString() },
       ].map((proposal) => ({
         profile_id: PROFILE_ID,
@@ -53,10 +60,27 @@ test("Portal proposal listings expire stale proposed items.", async (t) => {
     );
   });
 
+  const concurrentProposal = proposals.find((proposal) =>
+    proposal.title.startsWith("Concurrent expired proposal"),
+  );
+  assert.ok(concurrentProposal);
+  const concurrentlyExpired = await Promise.all([
+    markProposalExpired(db, concurrentProposal),
+    markProposalExpired(db, concurrentProposal),
+  ]);
+  assert.deepEqual(
+    concurrentlyExpired.map((proposal) => [proposal.status, proposal.revision]),
+    [
+      ["expired", concurrentProposal.revision + 1],
+      ["expired", concurrentProposal.revision + 1],
+    ],
+  );
+
   const listed = await listPortalProfileProposals(db, PROFILE_ID);
   const listedFixtures = listed.filter((proposal) => proposal.title.endsWith(marker));
 
   assert.deepEqual(listedFixtures.map((proposal) => [proposal.title, proposal.status]).sort(), [
+    [`Concurrent expired proposal ${marker}`, "expired"],
     [`Expired proposal ${marker}`, "expired"],
     [`Live proposal ${marker}`, "proposed"],
   ]);

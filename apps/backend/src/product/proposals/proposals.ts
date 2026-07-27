@@ -177,7 +177,7 @@ async function markProposalBlocked(
   );
 }
 
-async function markProposalExpired(
+export async function markProposalExpired(
   db: SupabaseServiceClient,
   proposal: TableRow<"profile_proposals">,
 ): Promise<TableRow<"profile_proposals">> {
@@ -193,9 +193,20 @@ async function markProposalExpired(
     .eq("id", proposal.id)
     .eq("revision", proposal.revision)
     .select()
-    .single();
+    .maybeSingle();
+  if (result.error) {
+    requireSupabaseData("Expire profile proposal", result.data, result.error);
+  }
+  if (result.data) return profileProposalRowSchema.parse(result.data);
+
+  const reloaded = await db
+    .from("profile_proposals")
+    .select()
+    .eq("id", proposal.id)
+    .eq("status", "expired")
+    .maybeSingle();
   return profileProposalRowSchema.parse(
-    requireSupabaseData("Expire profile proposal", result.data, result.error),
+    requireSupabaseData("Reload expired profile proposal", reloaded.data, reloaded.error),
   );
 }
 
