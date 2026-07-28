@@ -128,5 +128,7 @@ export async function getPortalProfileAction(
   if (result.error) throw result.error;
   if (!result.data)
     throw new DomainError(domainCodes.NOT_FOUND, `Profile action ${actionId} was not found.`);
-  return result.data;
+  return result.data.status === "pending_approval" && actionIsExpired(result.data)
+    ? expireProfileAction(db, result.data)
+    : result.data;
 }
