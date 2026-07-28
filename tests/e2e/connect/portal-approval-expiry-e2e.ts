@@ -5,6 +5,7 @@ import { test } from "node:test";
 import { requireSupabaseData } from "@ai-assistants/control-db";
 import {
   expireProfileAction,
+  getPortalProfileAction,
   listPortalProfileActions,
 } from "../../../apps/backend/src/test-support/actions";
 import { cleanupTestingProfileActions } from "../helpers/fixtures/testing-profile-actions-fixture";
@@ -68,6 +69,16 @@ test("Portal pending actions expire stale approvals before listing them.", async
     ["expired", "expired"],
   );
 
+  const expiredAction = actions.find((action) => action.title.startsWith("Expired approval"));
+  assert.ok(expiredAction);
+  const expiredDetail = await getPortalProfileAction(db, PROFILE_ID, expiredAction.id);
+  assert.equal(expiredDetail.status, "expired");
+
+  const liveAction = actions.find((action) => action.title.startsWith("Live approval"));
+  assert.ok(liveAction);
+  const liveDetail = await getPortalProfileAction(db, PROFILE_ID, liveAction.id);
+  assert.equal(liveDetail.status, "pending_approval");
+
   const listed = await listPortalProfileActions(db, PROFILE_ID, {
     statuses: ["pending_approval"],
   });
@@ -76,8 +87,6 @@ test("Portal pending actions expire stale approvals before listing them.", async
     listed.filter((action) => action.title.endsWith(marker)).map((action) => action.title),
     [`Live approval ${marker}`],
   );
-  const expiredAction = actions.find((action) => action.title.startsWith("Expired approval"));
-  assert.ok(expiredAction);
   const expiredResult = await db
     .from("profile_actions")
     .select("status")
