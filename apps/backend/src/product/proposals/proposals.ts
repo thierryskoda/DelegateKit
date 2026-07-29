@@ -19,6 +19,10 @@ type ProfileProposalStatus = z.infer<typeof profileProposalStatusSchema>;
 
 const PROPOSAL_APPROVAL_TTL_MS = 36 * 60 * 60_000;
 
+function proposalIsExpired(proposal: TableRow<"profile_proposals">): boolean {
+  return Boolean(proposal.expires_at && Date.parse(proposal.expires_at) <= Date.now());
+}
+
 function requireProposalObject(value: unknown, label: string): object {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new DomainError(domainCodes.BAD_REQUEST, `${label} must be a JSON object.`);
@@ -127,9 +131,7 @@ export async function listPortalProfileProposals(
   const normalized: TableRow<"profile_proposals">[] = [];
   for (const proposal of proposals) {
     const next =
-      proposal.status === "proposed" &&
-      proposal.expires_at &&
-      Date.parse(proposal.expires_at) <= Date.now()
+      proposal.status === "proposed" && proposalIsExpired(proposal)
         ? await markProposalExpired(db, proposal)
         : proposal;
     if (statuses.some((status) => status === next.status)) normalized.push(next);
@@ -151,7 +153,10 @@ export async function getPortalProfileProposal(
   if (result.error) throw result.error;
   if (!result.data)
     throw new DomainError(domainCodes.NOT_FOUND, `Profile proposal ${proposalId} was not found.`);
-  return profileProposalRowSchema.parse(result.data);
+  const proposal = profileProposalRowSchema.parse(result.data);
+  return proposal.status === "proposed" && proposalIsExpired(proposal)
+    ? markProposalExpired(db, proposal)
+    : proposal;
 }
 
 async function markProposalBlocked(

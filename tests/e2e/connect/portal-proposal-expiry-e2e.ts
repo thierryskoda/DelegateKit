@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { test } from "node:test";
 import { requireSupabaseData } from "@ai-assistants/control-db";
 import {
+  getPortalProfileProposal,
   listPortalProfileProposals,
   markProposalExpired,
 } from "../../../apps/backend/src/test-support/proposals";
@@ -13,7 +14,7 @@ import { createE2eRun, createMarker } from "../helpers/run/e2e-run";
 
 const PROFILE_ID = "testing";
 
-test("Portal proposal listings expire stale proposed items.", async (t) => {
+test("Portal proposal reads expire stale proposed items.", async (t) => {
   const run = await createE2eRun(t, { id: "portal-proposal-expiry" });
   await attachE2eSupabase(run);
   const db = await useE2eDb();
@@ -63,6 +64,19 @@ test("Portal proposal listings expire stale proposed items.", async (t) => {
   const concurrentProposal = proposals.find((proposal) =>
     proposal.title.startsWith("Concurrent expired proposal"),
   );
+  const expiredProposal = proposals.find((proposal) =>
+    proposal.title.startsWith("Expired proposal"),
+  );
+  const liveProposal = proposals.find((proposal) => proposal.title.startsWith("Live proposal"));
+  assert.ok(expiredProposal);
+  assert.ok(liveProposal);
+  const [expiredDetail, liveDetail] = await Promise.all([
+    getPortalProfileProposal(db, PROFILE_ID, expiredProposal.id),
+    getPortalProfileProposal(db, PROFILE_ID, liveProposal.id),
+  ]);
+  assert.equal(expiredDetail.status, "expired");
+  assert.equal(liveDetail.status, "proposed");
+
   assert.ok(concurrentProposal);
   const concurrentlyExpired = await Promise.all([
     markProposalExpired(db, concurrentProposal),
