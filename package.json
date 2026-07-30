@@ -102,6 +102,7 @@
     "knip": "knip --no-progress",
     "knip:e2e": "knip --config knip.e2e.json --workspace '@ai-assistants/workspace' --exports",
     "smoke:apps-sdk-mcp": "tsx scripts/smoke/apps-sdk-mcp.ts",
+    "smoke:deepseek-json": "tsx scripts/smoke/deepseek-json.ts",
     "smoke:codex-agent": "tsx scripts/smoke/codex-agent.ts",
     "diagnostics": "tsx scripts/diagnostics/diagnostics.ts"
   },
