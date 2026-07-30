@@ -16,12 +16,18 @@ const probeResultSchema = z
   })
   .strict();
 
+const supportedModels = new Set(["deepseek-v4-pro", "deepseek-v4-flash"]);
+
 function selectedModel(argv: readonly string[]): string {
   const modelArgs = argv.filter((arg) => arg.startsWith("--model="));
   const unexpectedArgs = argv.filter((arg) => !arg.startsWith("--model="));
   const model = modelArgs[0]?.slice("--model=".length).trim();
 
-  if (modelArgs.length > 1 || unexpectedArgs.length > 0 || (modelArgs.length === 1 && !model)) {
+  if (
+    modelArgs.length > 1 ||
+    unexpectedArgs.length > 0 ||
+    (modelArgs.length === 1 && (!model || !supportedModels.has(model)))
+  ) {
     throw new Error(
       "Usage: npm run smoke:deepseek-json -- [--model=deepseek-v4-pro|deepseek-v4-flash]",
     );
