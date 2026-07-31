@@ -17,6 +17,7 @@ const probeResultSchema = z
   .strict();
 
 const supportedModels = new Set(["deepseek-v4-pro", "deepseek-v4-flash"]);
+const usage = "Usage: npm run smoke:deepseek-json -- [--model=deepseek-v4-pro|deepseek-v4-flash]";
 
 function selectedModel(argv: readonly string[]): string {
   const modelArgs = argv.filter((arg) => arg.startsWith("--model="));
@@ -28,16 +29,20 @@ function selectedModel(argv: readonly string[]): string {
     unexpectedArgs.length > 0 ||
     (modelArgs.length === 1 && (!model || !supportedModels.has(model)))
   ) {
-    throw new Error(
-      "Usage: npm run smoke:deepseek-json -- [--model=deepseek-v4-pro|deepseek-v4-flash]",
-    );
+    throw new Error(usage);
   }
 
   return model ?? DEFAULT_DEEPSEEK_MODEL;
 }
 
 async function main(): Promise<void> {
-  const model = selectedModel(process.argv.slice(2));
+  const argv = process.argv.slice(2);
+  if (argv.length === 1 && (argv[0] === "--help" || argv[0] === "-h")) {
+    console.log(usage);
+    return;
+  }
+
+  const model = selectedModel(argv);
   loadProfileDotEnv("dev");
   requireEnvVars(["DEEPSEEK_API_KEY"], "DeepSeek JSON smoke probe");
 
