@@ -97,6 +97,7 @@ const SANDBOX_ONLY_E2E_FILES: ReadonlySet<string> = new Set([
   "tests/e2e/connect/portal-proposal-expiry-e2e.ts",
   "tests/e2e/connect/telegram-mini-app-session-e2e.ts",
   "tests/e2e/others/agent-activity-context-e2e.ts",
+  "tests/e2e/others/apps-sdk-mcp-smoke-cli-e2e.ts",
   "tests/e2e/others/boldsign-webhook-isolation-e2e.ts",
   "tests/e2e/others/chatgpt-apps-sdk-mcp-e2e.ts",
   "tests/e2e/others/deepseek-json-smoke-e2e.ts",

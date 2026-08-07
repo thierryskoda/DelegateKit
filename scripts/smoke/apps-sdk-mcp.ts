@@ -84,7 +84,13 @@ function requireStructuredObject(
 }
 
 async function main(): Promise<void> {
-  const args = parseArgs();
+  const argv = process.argv.slice(2);
+  if (argv.length === 1 && (argv[0] === "--help" || argv[0] === "-h")) {
+    console.log(usage());
+    return;
+  }
+
+  const args = parseArgs(argv);
   const contextUrl = withContext(args);
 
   const toolsResult = resultOf(await callMcp(args.url, "tools/list"));
