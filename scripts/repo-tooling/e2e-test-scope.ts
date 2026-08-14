@@ -107,6 +107,7 @@ const SANDBOX_ONLY_E2E_FILES: ReadonlySet<string> = new Set([
   "tests/e2e/others/microsoft-file-webhook-events-e2e.ts",
   "tests/e2e/others/proposal-email-follow-up-e2e.ts",
   "tests/e2e/others/provider-webhook-stale-callbacks-e2e.ts",
+  "tests/e2e/others/tunnel-cli-e2e.ts",
   "tests/e2e/others/twilio-phone-webhooks-e2e.ts",
 ] as const);
 
