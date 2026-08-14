@@ -36,7 +36,9 @@ function parseArgs(argv: readonly string[]): {
   if (!actionRaw) throw new Error(usage());
   assertRuntimeProfile(profileRaw);
   if (!isLocalSupabaseManagedProfile(profileRaw)) {
-    throw new Error(`Tunnel is local-only for dev/e2e. Configure your own public domains for ${profileRaw}.`);
+    throw new Error(
+      `Tunnel is local-only for dev/e2e. Configure your own public domains for ${profileRaw}.`,
+    );
   }
   if (!["status", "env", "up", "down"].includes(actionRaw)) throw new Error(usage());
   return {
@@ -75,6 +77,10 @@ function stopBridge(child: ChildProcess): void {
 }
 
 async function runTunnelCli(argv = process.argv.slice(2)): Promise<void> {
+  if (argv.length === 1 && (argv[0] === "--help" || argv[0] === "-h")) {
+    console.log(usage());
+    return;
+  }
   const args = parseArgs(argv);
   const force = args.force ? ["--force"] : [];
   if (args.action === "status") {
@@ -102,7 +108,9 @@ async function runTunnelCli(argv = process.argv.slice(2)): Promise<void> {
   process.once("SIGINT", shutdown);
   process.once("SIGTERM", shutdown);
   await runProfileTailscaleCli(["serve", `--profile=${args.profile}`, ...force]);
-  console.log("\nTunnel is up. Keep this process running while testing callbacks. Press Ctrl-C to stop the local bridge.");
+  console.log(
+    "\nTunnel is up. Keep this process running while testing callbacks. Press Ctrl-C to stop the local bridge.",
+  );
   await new Promise<void>((resolve, reject) => {
     bridge.once("error", reject);
     bridge.once("exit", (code, signal) => {
@@ -110,7 +118,9 @@ async function runTunnelCli(argv = process.argv.slice(2)): Promise<void> {
         resolve();
         return;
       }
-      reject(new Error(`web bridge exited unexpectedly with ${signal ?? `code ${code ?? "unknown"}`}.`));
+      reject(
+        new Error(`web bridge exited unexpectedly with ${signal ?? `code ${code ?? "unknown"}`}.`),
+      );
     });
   });
 }
