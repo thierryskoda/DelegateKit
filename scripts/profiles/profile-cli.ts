@@ -4,20 +4,13 @@ import { pathToFileURL } from "node:url";
 
 type ProfileCommand = "build" | "supabase" | "connect" | "learning-review" | "state-hygiene";
 
-const commands = [
-  "build",
-  "supabase",
-  "tailscale",
-  "connect",
-  "learning-review",
-  "state-hygiene",
-] as const;
+const commands = ["build", "supabase", "connect", "learning-review", "state-hygiene"] as const;
 
 function usage(): string {
   return [
-      "Usage:",
-      "  npm run profile -- build --profile=dev",
-      "  npm run profile -- build --profile=e2e",
+    "Usage:",
+    "  npm run profile -- build --profile=dev",
+    "  npm run profile -- build --profile=e2e",
     "  npm run profile -- supabase start|status|reset|stop|env --profile=dev|e2e",
     "  npm run profile -- connect dev --profile=dev|e2e -- --port 5173",
     "  npm run profile -- learning-review run-cursor|replay-date --profile=dev|prod --profile-id <id>",
