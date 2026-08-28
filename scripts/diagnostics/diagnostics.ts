@@ -38,17 +38,21 @@ function usage(): string {
   ].join("\n");
 }
 
-function parseCommand(argv: readonly string[]): { command: DiagnosticsCommand; args: string[] } {
+function parseCommand(argv: readonly string[]): {
+  command: DiagnosticsCommand | "help";
+  args: string[];
+} {
+  if (argv.length === 0) throw new Error(usage());
   const parsed = parseCliCommand(argv, { commands, usage });
   if (parsed.command === "help") {
     console.log(usage());
-    return { command: "prune", args: ["--help"] };
   }
-  return { command: parsed.command, args: parsed.args };
+  return parsed;
 }
 
 export async function runDiagnosticsCli(argv = process.argv.slice(2)): Promise<void> {
   const { command, args } = parseCommand(argv);
+  if (command === "help") return;
   if (command === "query") {
     const { runDiagnosticsQuery } = await import("./query");
     await runDiagnosticsQuery(args);
