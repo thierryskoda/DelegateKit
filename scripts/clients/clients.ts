@@ -48,16 +48,15 @@ function parseCommand(argv: readonly string[]): {
   command: ClientsCommand | "help";
   args: string[];
 } {
-  const parsed = parseCliCommand(argv, { commands, usage });
-  if (parsed.command === "help") {
-    console.log(usage());
-    return { command: "validate", args: ["--help"] };
-  }
-  return parsed;
+  return parseCliCommand(argv, { commands, usage });
 }
 
 export async function runClientsCli(argv = process.argv.slice(2)): Promise<void> {
   const { command, args } = parseCommand(argv);
+  if (command === "help") {
+    console.log(usage());
+    return;
+  }
   if (args.includes("--help") || args.includes("-h")) {
     console.log(usage());
     return;
